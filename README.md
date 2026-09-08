@@ -1,3 +1,13 @@
+## Auto commit dan push
+
+Otomatisasi Git tersedia melalui `tools/auto-commit-push.ps1`. Jalankan dari root repo:
+
+```powershell
+.\tools\auto-commit-push.ps1
+```
+
+Script akan menunggu perubahan selama 3 detik, membuat commit otomatis, lalu melakukan push ke branch aktif. Commit manual juga otomatis di-push melalui hook `post-commit`.
+
 # PangkasKAKA Shop Admin
 
 Website Admin PangkasKAKA — portal untuk role **Admin** (validator StreetBarber)
