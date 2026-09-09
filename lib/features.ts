@@ -1,5 +1,5 @@
 export const FEATURES = {
-  products: false,
-  services: false,
-  revenue: false,
+  products: true,
+  services: true,
+  revenue: true,
 } as const;
