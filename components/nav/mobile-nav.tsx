@@ -47,7 +47,7 @@ export function MobileNav() {
             <Menu className="size-4.5" />
           </Button>
           <div className="relative flex size-7 shrink-0 items-center justify-center overflow-hidden rounded-lg shadow-sm shadow-primary/25 ring-1 ring-white/40 ring-inset">
-            <Image src="/pangkaskaka-logo.png" alt="PangkasKAKA" fill sizes="28px" className="object-cover" priority />
+            <Image src="/pangkaskaka-logo.svg" alt="PangkasKAKA" fill sizes="28px" className="object-cover" priority />
           </div>
           <span className="text-sm font-bold tracking-tight">PangkasKAKA</span>
         </div>
@@ -82,7 +82,7 @@ export function MobileNav() {
           <div className="flex h-full flex-col">
             <div className="flex h-14 items-center gap-2.5 border-b border-sidebar-border/70 px-5">
               <div className="relative flex size-9 shrink-0 items-center justify-center overflow-hidden rounded-xl shadow-md shadow-primary/25 ring-1 ring-white/40 ring-inset">
-                <Image src="/pangkaskaka-logo.png" alt="PangkasKAKA" fill sizes="36px" className="object-cover" priority />
+                <Image src="/pangkaskaka-logo.svg" alt="PangkasKAKA" fill sizes="36px" className="object-cover" priority />
                 <span className="absolute -right-0.5 -bottom-0.5 size-2.5 rounded-full border-2 border-sidebar bg-emerald-500" />
               </div>
               <div className="leading-tight">
