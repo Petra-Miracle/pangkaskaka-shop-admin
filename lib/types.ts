@@ -172,3 +172,25 @@ export interface RevenueFilter {
   start_date?: string;
   end_date?: string;
 }
+
+export interface Barber {
+  id: string;
+  shop_id: string;
+  name: string;
+  phone?: string;
+  email?: string;
+  photo_url?: string;
+  specialization?: string;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface BarberFormData {
+  name: string;
+  phone?: string;
+  email?: string;
+  photo_url?: string;
+  specialization?: string;
+  is_active: boolean;
+}

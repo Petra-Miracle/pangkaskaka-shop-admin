@@ -6,6 +6,7 @@ import {
   Scissors,
   TrendingUp,
   User,
+  Users,
 } from "lucide-react";
 
 export type NavItem = { label: string; href: string; icon: LucideIcon; blocked?: boolean };
@@ -22,6 +23,7 @@ export const NAV_SECTIONS: NavSection[] = [
     label: "Manajemen",
     items: [
       { label: "Pelamar StreetBarber", href: "/applicants", icon: ClipboardCheck },
+      { label: "Karyawan / Barber", href: "/barbers", icon: Users },
     ],
   },
   {
