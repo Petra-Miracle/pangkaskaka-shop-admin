@@ -5,31 +5,31 @@
 | **Repo** | `pangkaskaka-shop-admin` |
 | **Sistem** | Admin (bukan SuperAdmin, bukan aplikasi utama) |
 | **Cabang** | `main` |
-| **Terakhir diupdate** | 8 September 2026 |
+| **Terakhir diupdate** | 9 September 2026 |
 | **Link repo** | https://github.com/Petra-Miracle/pangkaskaka-shop-admin |
 
 > Catatan: repo ini adalah sistem **Admin** — dashboard untuk memvalidasi pelamar
-> StreetBarber di toko yang di-*assign*. Kalau kamu ditugaskan pegang repo
+> StreetBarber di toko yang di-*assign*, serta mengelola produk, layanan, dan
+> melihat data keuangan toko tersebut. Kalau kamu ditugaskan pegang repo
 > **SuperAdmin** yang terpisah, laporan ini tetap berguna sebagai referensi batas
 > antar sistem (lihat bagian "Batas Sistem" di bawah), tapi kode & struktur
 > folder yang dibahas di sini ada di repo yang berbeda.
 
-**Ringkasan:** 9 item sudah selesai · 3 prioritas tinggi belum bisa dites (butuh backend/akun asli) · 4 item menengah/rendah belum dikerjakan.
+**Ringkasan:** 12 item sudah selesai · 3 prioritas tinggi belum bisa dites (butuh backend/akun asli) · 4 item menengah/rendah belum dikerjakan.
 
 ---
 
 ## ⚠ Batas Sistem — Jangan Dikerjakan di Repo Ini
 
-Ini bagian paling penting. Repo ini murni untuk validasi StreetBarber. Hal-hal
-berikut sengaja **di luar cakupan** karena jadi tanggung jawab sistem lain —
-kalau butuh salah satu dari ini, itu tandanya harus koordinasi ke pemilik
-produk / tim SuperAdmin atau Owner dulu, bukan ditambah sendiri di sini.
+Ini bagian paling penting. Repo ini adalah dashboard **Admin** — mencakup
+validasi StreetBarber **dan** manajemen toko (produk, layanan, keuangan baca-saja).
+Hal-hal berikut sengaja **di luar cakupan** karena jadi tanggung jawab sistem lain:
 
 - ❌ Membuat / mengedit akun Admin (`POST /superadmin/admins`) — wewenang SuperAdmin, dilakukan di sistem lain.
 - ❌ Approval toko & dokumen legalitas (KTP pemilik, NIB, NPWP, dsb) — tetap di aplikasi SuperAdmin.
-- ❌ Manajemen barber toko biasa (non-StreetBarber), layanan, produk, pesanan — wilayah dashboard Owner.
-- ❌ Fitur baru di luar: login, dashboard ringkasan, daftar & detail pelamar (berkas + evaluasi), chat rekrutmen, profil.
+- ❌ Manajemen barber toko biasa (non-StreetBarber) — wilayah dashboard Owner.
 - ❌ Mengubah urutan status pelamar (`pending → menunggu_tes/rejected → active/rejected`) di frontend — status ini ditentukan backend, jangan di-hardcode ulang alurnya di sini.
+- ❌ Fitur CRUD data transaksi keuangan — Admin hanya bisa melihat data, bukan membuat/menghapus transaksi (wilayah Owner).
 
 ---
 
@@ -44,6 +44,9 @@ produk / tim SuperAdmin atau Owner dulu, bukan ditambah sendiri di sini.
 - **Chat rekrutmen** — polling tiap 4 detik, kirim teks + lampiran gambar; otomatis nonaktif untuk status `pending`/`rejected`.
 - **Profil & visual** — halaman profil (info + daftar toko + logout). Desain memakai token warna & font yang sama persis dengan dashboard SuperAdmin mobile.
 - **Build, lint, verifikasi alur** — `npm run build` & `npm run lint` bersih. Seluruh alur (login ditolak untuk non-admin, pending→approve→evaluasi, kirim chat, sesi bertahan) sudah dites lewat mock API lokal — **belum lewat backend asli**, lihat di bawah.
+- **Katalog Produk** — halaman manajemen produk dengan tabel (gambar, nama, harga, stok, status), form CRUD dengan upload gambar + input harga format Rupiah, filter kategori. Fitur `products: false` (feature flag, belum aktif).
+- **Layanan** — halaman manajemen layanan dengan tabel (nama, harga, durasi, status), form CRUD. Fitur `services: false` (feature flag, belum aktif).
+- **Revenue (baca-saja)** — halaman keuangan dengan kartu ringkasan (pendapatan, pengeluaran, laba) + tabel transaksi + filter tanggal/jenis. Admin hanya melihat, tidak bisa mengubah data. Fitur `revenue: false` (feature flag, belum aktif).
 
 ---
 
@@ -117,9 +120,14 @@ npm run dev
 
 **Struktur inti**
 - `app/(dashboard)/applicants/[kid]/` — detail pelamar
+- `app/(dashboard)/products/` — manajemen produk
+- `app/(dashboard)/services/` — manajemen layanan
+- `app/(dashboard)/revenue/` — data keuangan (baca-saja)
 - `contexts/AuthContext.tsx` — sesi & toko
 - `lib/api.ts` — wrapper fetch
 - `lib/types.ts` — bentuk data API
+- `lib/features.ts` — feature flags (products, services, revenue)
+- `BACKEND-PREPARATION.md` — spesifikasi endpoint backend yang dibutuhkan
 
 Detail lebih lengkap ada di `README.md` di root repo.
 
