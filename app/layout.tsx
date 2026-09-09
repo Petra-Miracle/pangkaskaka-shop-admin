@@ -1,24 +1,44 @@
-import type { Metadata } from "next";
-import { Plus_Jakarta_Sans } from "next/font/google";
+import type { Metadata, Viewport } from "next";
+import { Inter } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/contexts/AuthContext";
+import { ThemeProvider } from "@/components/providers/theme-provider";
+import { QueryProvider } from "@/components/providers/query-provider";
+import { Toaster } from "@/components/ui/sonner";
 
-const jakarta = Plus_Jakarta_Sans({
-  variable: "--font-jakarta",
+const inter = Inter({
   subsets: ["latin"],
-  weight: ["400", "500", "600", "700", "800"],
+  variable: "--font-inter",
+  display: "swap",
 });
 
 export const metadata: Metadata = {
-  title: "PangkasKAKA Admin",
-  description: "Validasi pelamar StreetBarber untuk toko yang Anda kelola",
+  title: {
+    default: "PangkasKAKA Admin",
+    template: "%s · PangkasKAKA Admin",
+  },
+  description: "Admin dashboard for the PangkasKAKA barbershop platform.",
+};
+
+export const viewport: Viewport = {
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#f3f6ff" },
+    { media: "(prefers-color-scheme: dark)", color: "#0a0f1e" },
+  ],
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="id" className={`${jakarta.variable} h-full antialiased`}>
-      <body className="min-h-full bg-bg text-text font-sans">
-        <AuthProvider>{children}</AuthProvider>
+    <html lang="id" className={`h-full ${inter.variable}`} suppressHydrationWarning>
+      <body className="min-h-full flex flex-col">
+        <ThemeProvider>
+          <AuthProvider>
+            <QueryProvider>
+              {children}
+              <Toaster />
+            </QueryProvider>
+          </AuthProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

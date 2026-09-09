@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { render, screen } from "@testing-library/react";
-import Button from "@/components/ui/Button";
+import { Button } from "@/components/ui/button";
 
 describe("Button", () => {
   it("renders children text", () => {
@@ -16,11 +16,6 @@ describe("Button", () => {
 
   it("can be disabled", () => {
     render(<Button disabled>Disabled</Button>);
-    expect(screen.getByRole("button")).toBeDisabled();
-  });
-
-  it("shows loading spinner when loading", () => {
-    render(<Button loading>Loading</Button>);
     expect(screen.getByRole("button")).toBeDisabled();
   });
 });

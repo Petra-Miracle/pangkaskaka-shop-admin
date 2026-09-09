@@ -8,8 +8,7 @@ import {
   EvaluationWeights,
   KaryawanApplication,
 } from "@/lib/types";
-import Card from "@/components/ui/Card";
-import Button from "@/components/ui/Button";
+import { Button } from "@/components/ui/button";
 
 const PASSING_SCORE = 60;
 
@@ -74,23 +73,23 @@ export default function EvaluationPanel({
 
   if (hasResult) {
     return (
-      <Card>
-        <h2 className="mb-4 text-sm font-bold uppercase tracking-wide text-text-dim">
+      <div className="glass-card rounded-2xl p-6">
+        <h2 className="mb-4 text-sm font-bold uppercase tracking-wide text-muted-foreground">
           Hasil Evaluasi
         </h2>
         <div className="space-y-2">
           {EVALUATION_WEIGHT_FIELDS.map((key) => (
             <div key={key} className="flex items-center justify-between text-sm">
-              <span className="text-text-muted">{EVALUATION_LABELS[key]}</span>
-              <span className="font-semibold text-text">
+              <span className="text-muted-foreground">{EVALUATION_LABELS[key]}</span>
+              <span className="font-semibold text-foreground">
                 {applicant[key] ?? 0} / 20
               </span>
             </div>
           ))}
         </div>
         <div className="mt-4 flex items-center justify-between border-t border-border pt-3">
-          <span className="font-bold text-text">Total Skor</span>
-          <span className="text-xl font-extrabold text-brand">
+          <span className="font-bold text-foreground">Total Skor</span>
+          <span className="text-xl font-extrabold text-primary">
             {applicant.total_score}
           </span>
         </div>
@@ -105,15 +104,15 @@ export default function EvaluationPanel({
         >
           Hasil akhir: {applicant.status === "active" ? "StreetBarber Aktif" : "Ditolak"}
         </p>
-      </Card>
+      </div>
     );
   }
 
   const willPass = total >= PASSING_SCORE;
 
   return (
-    <Card>
-      <h2 className="mb-4 text-sm font-bold uppercase tracking-wide text-text-dim">
+    <div className="glass-card rounded-2xl p-6">
+      <h2 className="mb-4 text-sm font-bold uppercase tracking-wide text-muted-foreground">
         Evaluasi Tes Keterampilan
       </h2>
 
@@ -121,10 +120,10 @@ export default function EvaluationPanel({
         {EVALUATION_WEIGHT_FIELDS.map((key) => (
           <div key={key}>
             <div className="mb-1 flex items-center justify-between text-sm">
-              <label className="font-medium text-text-muted">
+              <label className="font-medium text-muted-foreground">
                 {EVALUATION_LABELS[key]}
               </label>
-              <span className="font-bold text-text">{weights[key]} / 20</span>
+              <span className="font-bold text-foreground">{weights[key]} / 20</span>
             </div>
             <input
               type="range"
@@ -135,19 +134,19 @@ export default function EvaluationPanel({
               onChange={(e) =>
                 setWeights((prev) => ({ ...prev, [key]: Number(e.target.value) }))
               }
-              className="w-full accent-[#006FEE]"
+              className="w-full accent-primary"
             />
           </div>
         ))}
       </div>
 
-      <div className="mt-5 rounded-md bg-surface-2 p-4">
+      <div className="mt-5 rounded-xl bg-muted/50 p-4">
         <div className="flex items-center justify-between">
-          <span className="text-sm font-semibold text-text-muted">Total Skor</span>
-          <span className="text-2xl font-extrabold text-text">{total} / 120</span>
+          <span className="text-sm font-semibold text-muted-foreground">Total Skor</span>
+          <span className="text-2xl font-extrabold text-foreground">{total} / 120</span>
         </div>
         <div className="mt-2 flex items-center justify-between text-sm">
-          <span className="text-text-dim">Prediksi hasil (batas lolos {PASSING_SCORE})</span>
+          <span className="text-muted-foreground">Prediksi hasil (batas lolos {PASSING_SCORE})</span>
           <span
             className="font-bold"
             style={{ color: willPass ? "var(--color-success)" : "var(--color-error)" }}
@@ -157,17 +156,17 @@ export default function EvaluationPanel({
         </div>
         {willPass && (
           <div className="mt-1 flex items-center justify-between text-sm">
-            <span className="text-text-dim">Prediksi level (non-final)</span>
-            <span className="font-semibold text-text">{predictSkillLevel(total)}</span>
+            <span className="text-muted-foreground">Prediksi level (non-final)</span>
+            <span className="font-semibold text-foreground">{predictSkillLevel(total)}</span>
           </div>
         )}
       </div>
 
-      {error && <p className="mt-3 text-sm font-medium text-error">{error}</p>}
+      {error && <p className="mt-3 text-sm font-medium text-destructive">{error}</p>}
 
-      <Button className="mt-4" loading={submitting} onClick={handleSubmit}>
-        Simpan Evaluasi
+      <Button className="mt-4 shadow-glow" disabled={submitting} onClick={handleSubmit}>
+        {submitting ? "Menyimpan..." : "Simpan Evaluasi"}
       </Button>
-    </Card>
+    </div>
   );
 }

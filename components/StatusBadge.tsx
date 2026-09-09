@@ -1,31 +1,32 @@
 import { ApplicantStatus } from "@/lib/types";
+import { cn } from "@/lib/utils";
 
 const STATUS_MAP: Record<
   ApplicantStatus,
-  { label: string; bg: string; color: string }
+  { label: string; className: string }
 > = {
-  pending: { label: "MENUNGGU BERKAS", bg: "#FFF7ED", color: "var(--color-warning)" },
-  menunggu_tes: { label: "TAHAP TES", bg: "#EFF8FF", color: "var(--color-info)" },
+  pending: { label: "MENUNGGU BERKAS", className: "bg-warning/15 text-warning" },
+  menunggu_tes: { label: "TAHAP TES", className: "bg-info/15 text-info" },
   seleksi_berkas_lolos: {
     label: "TAHAP TES",
-    bg: "#EFF8FF",
-    color: "var(--color-info)",
+    className: "bg-info/15 text-info",
   },
-  active: { label: "STREETBARBER AKTIF", bg: "#ECFDF5", color: "var(--color-success)" },
-  rejected: { label: "DITOLAK", bg: "#FEF2F2", color: "var(--color-error)" },
+  active: { label: "STREETBARBER AKTIF", className: "bg-success/15 text-success" },
+  rejected: { label: "DITOLAK", className: "bg-destructive/15 text-destructive" },
 };
 
-export default function StatusBadge({ status }: { status: ApplicantStatus }) {
+export function StatusBadge({ status }: { status: ApplicantStatus }) {
   const meta = STATUS_MAP[status] ?? {
     label: status,
-    bg: "#F3F3F4",
-    color: "var(--color-text-dim)",
+    className: "bg-muted text-muted-foreground",
   };
 
   return (
     <span
-      className="inline-flex items-center rounded-sm px-2.5 py-1 text-xs font-bold tracking-wide"
-      style={{ backgroundColor: meta.bg, color: meta.color }}
+      className={cn(
+        "inline-flex items-center rounded-full px-2.5 py-1 text-xs font-bold tracking-wide",
+        meta.className
+      )}
     >
       {meta.label}
     </span>

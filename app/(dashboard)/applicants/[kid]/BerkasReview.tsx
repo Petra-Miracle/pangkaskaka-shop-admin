@@ -3,8 +3,7 @@
 import { useState } from "react";
 import { api, ApiError } from "@/lib/api";
 import { KaryawanApplication } from "@/lib/types";
-import Card from "@/components/ui/Card";
-import Button from "@/components/ui/Button";
+import { Button } from "@/components/ui/button";
 
 interface DocField {
   key: keyof KaryawanApplication;
@@ -60,17 +59,17 @@ export default function BerkasReview({
   }
 
   return (
-    <Card>
-      <h2 className="mb-4 text-sm font-bold uppercase tracking-wide text-text-dim">
+    <div className="glass-card rounded-2xl p-6">
+      <h2 className="mb-4 text-sm font-bold uppercase tracking-wide text-muted-foreground">
         Berkas Pelamar
       </h2>
 
-      <div className="mb-4 rounded-md bg-surface-2 p-3 text-sm">
-        <p className="font-semibold text-text">Pengalaman Kerja</p>
-        <p className="mt-1 whitespace-pre-wrap text-text-muted">
+      <div className="mb-4 rounded-xl bg-muted/50 p-3 text-sm">
+        <p className="font-semibold text-foreground">Pengalaman Kerja</p>
+        <p className="mt-1 whitespace-pre-wrap text-muted-foreground">
           {applicant.work_experience || "-"}
         </p>
-        <p className="mt-2 text-xs text-text-dim">
+        <p className="mt-2 text-xs text-muted-foreground">
           Menyetujui kriteria StreetBarber:{" "}
           <span className="font-semibold">
             {applicant.criteria_agreed ? "Ya" : "Tidak"}
@@ -82,12 +81,12 @@ export default function BerkasReview({
         {DOC_FIELDS.map((field) => {
           const value = applicant[field.key] as string;
           return (
-            <div key={field.key} className="rounded-md border border-border p-3">
-              <p className="mb-1.5 text-xs font-semibold text-text-dim">
+            <div key={field.key} className="rounded-xl border border-border p-3">
+              <p className="mb-1.5 text-xs font-semibold text-muted-foreground">
                 {field.label}
               </p>
               {!value ? (
-                <p className="text-sm text-text-dim">
+                <p className="text-sm text-muted-foreground">
                   {field.optional ? "Tidak dilampirkan" : "Belum ada"}
                 </p>
               ) : field.kind === "image" ? (
@@ -96,7 +95,7 @@ export default function BerkasReview({
                   <img
                     src={value}
                     alt={field.label}
-                    className="h-32 w-full rounded-sm object-cover"
+                    className="h-32 w-full rounded-xl object-cover"
                   />
                 </a>
               ) : field.kind === "link" ? (
@@ -104,12 +103,12 @@ export default function BerkasReview({
                   href={value}
                   target="_blank"
                   rel="noreferrer"
-                  className="break-all text-sm font-medium text-brand hover:underline"
+                  className="break-all text-sm font-medium text-primary hover:underline"
                 >
                   {value}
                 </a>
               ) : (
-                <p className="whitespace-pre-wrap text-sm text-text-muted">
+                <p className="whitespace-pre-wrap text-sm text-muted-foreground">
                   {value}
                 </p>
               )}
@@ -125,43 +124,42 @@ export default function BerkasReview({
             onChange={(e) => setReason(e.target.value)}
             placeholder="Alasan (wajib jika menolak berkas)"
             rows={2}
-            className="w-full rounded-md border border-border bg-surface px-3 py-2 text-sm text-text outline-none focus:border-brand"
+            className="w-full rounded-xl border border-border bg-background px-3 py-2 text-sm text-foreground outline-none focus:border-primary"
           />
-          {error && <p className="text-sm font-medium text-error">{error}</p>}
+          {error && <p className="text-sm font-medium text-destructive">{error}</p>}
           <div className="flex gap-3">
             <Button
-              variant="success"
-              loading={submitting === "lolos"}
+              variant="default"
               disabled={submitting !== null}
               onClick={() => decide("lolos")}
+              className="bg-success hover:bg-success/90"
             >
-              Setujui Berkas
+              {submitting === "lolos" ? "Memproses..." : "Setujui Berkas"}
             </Button>
             <Button
-              variant="danger"
-              loading={submitting === "tolak"}
+              variant="destructive"
               disabled={submitting !== null}
               onClick={() => decide("tolak")}
             >
-              Tolak Berkas
+              {submitting === "tolak" ? "Memproses..." : "Tolak Berkas"}
             </Button>
           </div>
         </div>
       ) : (
         applicant.berkas_reviewed_at && (
           <div className="mt-5 border-t border-border pt-4 text-sm">
-            <p className="font-semibold text-text">
+            <p className="font-semibold text-foreground">
               Berkas telah ditinjau pada{" "}
               {new Date(applicant.berkas_reviewed_at).toLocaleString("id-ID")}
             </p>
             {applicant.berkas_reason && (
-              <p className="mt-1 text-text-dim">
+              <p className="mt-1 text-muted-foreground">
                 Catatan: {applicant.berkas_reason}
               </p>
             )}
           </div>
         )
       )}
-    </Card>
+    </div>
   );
 }

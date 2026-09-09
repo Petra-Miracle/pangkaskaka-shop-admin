@@ -4,7 +4,9 @@ import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
 import { ApplicantsProvider } from "@/contexts/ApplicantsContext";
-import Sidebar from "@/components/Sidebar";
+import { Sidebar } from "@/components/nav/sidebar";
+import { Topbar } from "@/components/nav/topbar";
+import { MobileNav } from "@/components/nav/mobile-nav";
 
 export default function DashboardLayout({
   children,
@@ -22,8 +24,8 @@ export default function DashboardLayout({
 
   if (loading) {
     return (
-      <div className="flex h-screen items-center justify-center bg-bg">
-        <div className="h-8 w-8 animate-spin rounded-full border-4 border-brand-dim border-t-brand" />
+      <div className="flex h-screen items-center justify-center bg-background">
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-muted border-t-primary" />
       </div>
     );
   }
@@ -34,11 +36,15 @@ export default function DashboardLayout({
 
   return (
     <ApplicantsProvider>
-      <div className="flex h-screen overflow-hidden bg-bg">
+      <div className="bg-gradient-mesh relative flex min-h-screen">
         <Sidebar />
-        <main className="flex-1 overflow-y-auto">
-          <div className="mx-auto max-w-6xl px-6 py-8 md:px-10">{children}</div>
-        </main>
+        <div className="flex min-w-0 flex-1 flex-col">
+          <Topbar />
+          <MobileNav />
+          <main className="w-full flex-1 overflow-y-auto p-4 pb-28 md:p-6 md:pb-6">
+            <div className="mx-auto w-full max-w-[1440px]">{children}</div>
+          </main>
+        </div>
       </div>
     </ApplicantsProvider>
   );

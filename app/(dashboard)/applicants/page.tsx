@@ -5,8 +5,8 @@ import { useSearchParams } from "next/navigation";
 import { Suspense, useMemo, useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useApplicants } from "@/contexts/ApplicantsContext";
-import Card from "@/components/ui/Card";
-import StatusBadge from "@/components/StatusBadge";
+import { PageHeader } from "@/components/nav/page-header";
+import { StatusBadge } from "@/components/StatusBadge";
 import { ApplicantStatus } from "@/lib/types";
 
 const STATUS_OPTIONS: { value: ApplicantStatus | "all"; label: string }[] = [
@@ -48,20 +48,17 @@ function ApplicantsPageInner() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-xl font-extrabold text-text">
-          Pelamar StreetBarber
-        </h1>
-        <p className="mt-1 text-sm text-text-dim">
-          Daftar pelamar dari semua toko yang Anda kelola.
-        </p>
-      </div>
+      <PageHeader
+        eyebrow="Manajemen"
+        title="Pelamar StreetBarber"
+        description="Daftar pelamar dari semua toko yang Anda kelola."
+      />
 
       <div className="flex flex-wrap gap-3">
         <select
           value={shopFilter}
           onChange={(e) => setShopFilter(e.target.value)}
-          className="rounded-md border border-border bg-surface px-3 py-2 text-sm font-medium text-text outline-none focus:border-brand"
+          className="rounded-xl border border-border bg-card px-3 py-2 text-sm font-medium text-foreground outline-none focus:border-primary"
         >
           <option value="all">Semua Toko</option>
           {managedShopIds.map((id) => (
@@ -76,7 +73,7 @@ function ApplicantsPageInner() {
           onChange={(e) =>
             setStatusFilter(e.target.value as ApplicantStatus | "all")
           }
-          className="rounded-md border border-border bg-surface px-3 py-2 text-sm font-medium text-text outline-none focus:border-brand"
+          className="rounded-xl border border-border bg-card px-3 py-2 text-sm font-medium text-foreground outline-none focus:border-primary"
         >
           {STATUS_OPTIONS.map((opt) => (
             <option key={opt.value} value={opt.value}>
@@ -87,34 +84,34 @@ function ApplicantsPageInner() {
       </div>
 
       {error && (
-        <div className="rounded-md bg-[#FEF2F2] px-4 py-3 text-sm font-medium text-error">
+        <div className="rounded-md bg-destructive/10 px-4 py-3 text-sm font-medium text-destructive">
           {error}
         </div>
       )}
 
       {loading ? (
-        <Card className="text-center text-sm text-text-dim">Memuat...</Card>
+        <div className="glass-card rounded-2xl p-6 text-center text-sm text-muted-foreground">Memuat...</div>
       ) : filtered.length === 0 ? (
-        <Card className="text-center">
-          <p className="font-semibold text-text">Tidak ada pelamar.</p>
-          <p className="mt-1 text-sm text-text-dim">
+        <div className="glass-card rounded-2xl p-6 text-center">
+          <p className="font-semibold text-foreground">Tidak ada pelamar.</p>
+          <p className="mt-1 text-sm text-muted-foreground">
             {applicants.length === 0
               ? "Belum ada pelamar StreetBarber untuk toko yang Anda kelola."
               : "Tidak ada pelamar yang cocok dengan filter saat ini."}
           </p>
-        </Card>
+        </div>
       ) : (
         <div className="space-y-3">
           {filtered.map((a) => (
             <Link key={a.id} href={`/applicants/${a.id}`}>
-              <Card className="flex items-center justify-between gap-4 transition hover:border-brand hover:shadow-md">
+              <div className="glass-card glass-card-hover rounded-2xl flex items-center justify-between gap-4 p-4">
                 <div className="min-w-0">
-                  <p className="truncate font-bold text-text">{a.name}</p>
-                  <p className="truncate text-xs text-text-dim">
+                  <p className="truncate font-bold text-foreground">{a.name}</p>
+                  <p className="truncate text-xs text-muted-foreground">
                     {shopsById[a.shop_id]?.name || a.shop_id} &middot;{" "}
                     {a.email}
                   </p>
-                  <p className="mt-1 text-xs text-text-dim">
+                  <p className="mt-1 text-xs text-muted-foreground">
                     Diajukan{" "}
                     {new Date(a.created_at).toLocaleDateString("id-ID", {
                       day: "numeric",
@@ -126,12 +123,12 @@ function ApplicantsPageInner() {
                 <div className="flex shrink-0 flex-col items-end gap-1.5">
                   <StatusBadge status={a.status} />
                   {a.evaluated_at && (
-                    <span className="text-xs font-semibold text-text-dim">
+                    <span className="text-xs font-semibold text-muted-foreground">
                       Skor: {a.total_score}
                     </span>
                   )}
                 </div>
-              </Card>
+              </div>
             </Link>
           ))}
         </div>
