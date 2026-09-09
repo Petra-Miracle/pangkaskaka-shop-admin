@@ -8,7 +8,7 @@ import {
   useMemo,
   useState,
 } from "react";
-import { api } from "@/lib/api";
+import { api, ApiError } from "@/lib/api";
 import { Service } from "@/lib/types";
 
 interface ServicesContextValue {
@@ -36,9 +36,13 @@ export function ServicesProvider({ children }: { children: React.ReactNode }) {
       );
       setServices(res.services || []);
     } catch (err) {
-      setError(
-        err instanceof Error ? err.message : "Gagal memuat daftar layanan."
-      );
+      if (err instanceof ApiError && err.status === 404) {
+        setError("Fitur layanan belum tersedia di server.");
+      } else {
+        setError(
+          err instanceof Error ? err.message : "Gagal memuat daftar layanan."
+        );
+      }
     } finally {
       setLoading(false);
     }

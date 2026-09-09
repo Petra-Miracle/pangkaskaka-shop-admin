@@ -83,11 +83,15 @@ export function ProductFormDialog({
         is_active: true,
       });
     } catch (err) {
-      setError(
-        err instanceof ApiError
-          ? err.message
-          : "Gagal menyimpan produk. Silakan coba lagi."
-      );
+      if (err instanceof ApiError && err.status === 404) {
+        setError("Fitur produk belum tersedia di server. Silakan hubungi admin server.");
+      } else {
+        setError(
+          err instanceof ApiError
+            ? err.message
+            : "Gagal menyimpan produk. Silakan coba lagi."
+        );
+      }
     } finally {
       setLoading(false);
     }

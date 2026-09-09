@@ -8,7 +8,7 @@ import {
   useMemo,
   useState,
 } from "react";
-import { api } from "@/lib/api";
+import { api, ApiError } from "@/lib/api";
 import { Product } from "@/lib/types";
 
 interface ProductsContextValue {
@@ -36,9 +36,13 @@ export function ProductsProvider({ children }: { children: React.ReactNode }) {
       );
       setProducts(res.products || []);
     } catch (err) {
-      setError(
-        err instanceof Error ? err.message : "Gagal memuat daftar produk."
-      );
+      if (err instanceof ApiError && err.status === 404) {
+        setError("Fitur katalog produk belum tersedia di server.");
+      } else {
+        setError(
+          err instanceof Error ? err.message : "Gagal memuat daftar produk."
+        );
+      }
     } finally {
       setLoading(false);
     }

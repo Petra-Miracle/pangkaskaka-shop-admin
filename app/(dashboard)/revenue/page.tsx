@@ -49,11 +49,15 @@ export default function RevenuePage() {
       setSummary(summaryRes);
       setTransactions(txRes.transactions || []);
     } catch (err) {
-      setError(
-        err instanceof ApiError
-          ? err.message
-          : "Gagal memuat data keuangan."
-      );
+      if (err instanceof ApiError && err.status === 404) {
+        setError("Fitur revenue belum tersedia di server.");
+      } else {
+        setError(
+          err instanceof ApiError
+            ? err.message
+            : "Gagal memuat data keuangan."
+        );
+      }
     } finally {
       setLoading(false);
     }
