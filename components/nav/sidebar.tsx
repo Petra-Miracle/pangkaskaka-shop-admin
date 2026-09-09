@@ -38,7 +38,7 @@ export function Sidebar() {
     >
       <div className={cn("flex h-16 shrink-0 items-center gap-2.5 border-b border-sidebar-border/70", collapsed ? "justify-center px-3" : "px-4")}>
         <div className="relative flex size-9 shrink-0 items-center justify-center overflow-hidden rounded-xl shadow-md shadow-primary/25 ring-1 ring-white/40 ring-inset">
-          <Image src="/pangkaskaka-logo.svg" alt="PangkasKAKA" fill sizes="36px" className="object-cover" priority />
+          <Image src="/pangkaskaka-logo.jpeg" alt="PangkasKAKA" fill sizes="36px" className="object-cover" priority />
           <span className="absolute -right-0.5 -bottom-0.5 size-2.5 rounded-full border-2 border-sidebar bg-emerald-500" />
         </div>
         {!collapsed && (

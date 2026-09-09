@@ -52,7 +52,7 @@ export default function LoginPage() {
         <div className="w-full max-w-sm">
           <div className="mb-7 flex flex-col items-center text-center animate-fade-up">
             <div className="relative mb-4 flex size-14 items-center justify-center overflow-hidden rounded-2xl shadow-lg shadow-primary/30 ring-1 ring-white/40 ring-inset animate-float">
-              <Image src="/pangkaskaka-logo.svg" alt="PangkasKAKA" fill sizes="56px" className="object-cover" priority />
+              <Image src="/pangkaskaka-logo.jpeg" alt="PangkasKAKA" fill sizes="56px" className="object-cover" priority />
               <span className="absolute -right-0.5 -bottom-0.5 size-3 rounded-full border-2 border-white bg-emerald-500" />
             </div>
             <h1 className="text-xl font-bold tracking-tight text-foreground">PangkasKAKA</h1>
