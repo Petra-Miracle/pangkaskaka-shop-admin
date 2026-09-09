@@ -146,7 +146,7 @@ function ApplicantsPageInner() {
 
       <div className="flex flex-wrap gap-3">
         <Dropdown>
-          <Button variant="secondary" className="gap-2">
+          <Button variant="primary" className="gap-2">
             <Filter className="size-4" />
             {selectedShopLabel}
           </Button>
@@ -171,7 +171,7 @@ function ApplicantsPageInner() {
         </Dropdown>
 
         <Dropdown>
-          <Button variant="secondary" className="gap-2">
+          <Button variant="primary" className="gap-2">
             <Filter className="size-4" />
             {selectedStatusLabel}
           </Button>
