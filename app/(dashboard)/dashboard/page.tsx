@@ -7,6 +7,7 @@ import { useApplicants } from "@/contexts/ApplicantsContext";
 import { api, ApiError } from "@/lib/api";
 import { FEATURES } from "@/lib/features";
 import { ApplicantStatus, Product, Service } from "@/lib/types";
+import { getProducts, getServices } from "@/lib/storage";
 import { PageHeader } from "@/components/nav/page-header";
 import { Package, Scissors, TrendingUp } from "lucide-react";
 
@@ -30,7 +31,11 @@ export default function DashboardPage() {
   const managedShopIds = user?.managed_shop_ids || [];
 
   const fetchCounts = useCallback(async () => {
-    if (!FEATURES.products && !FEATURES.services) return;
+    if (!FEATURES.products && !FEATURES.services) {
+      setProductCount(getProducts().length);
+      setServiceCount(getServices().length);
+      return;
+    }
     try {
       const promises: Promise<unknown>[] = [];
       if (FEATURES.products)
@@ -43,11 +48,15 @@ export default function DashboardPage() {
         const r = results[idx++];
         if (r && r.status === "fulfilled")
           setProductCount((r.value as { products: Product[] }).products?.length ?? 0);
+      } else {
+        setProductCount(getProducts().length);
       }
       if (FEATURES.services) {
         const r = results[idx++];
         if (r && r.status === "fulfilled")
           setServiceCount((r.value as { services: Service[] }).services?.length ?? 0);
+      } else {
+        setServiceCount(getServices().length);
       }
     } catch {
       // silently ignore

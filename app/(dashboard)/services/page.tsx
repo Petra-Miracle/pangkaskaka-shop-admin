@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import { api, ApiError } from "@/lib/api";
 import { FEATURES } from "@/lib/features";
 import { Service } from "@/lib/types";
+import { getServices, deleteService } from "@/lib/storage";
 import { PageHeader } from "@/components/nav/page-header";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -36,6 +37,7 @@ export default function ServicesPage() {
 
   const fetchServices = useCallback(async () => {
     if (!FEATURES.services) {
+      setServices(getServices());
       setLoading(false);
       return;
     }
@@ -91,8 +93,13 @@ export default function ServicesPage() {
     if (!confirm("Yakin ingin menghapus layanan ini?")) return;
     setDeleting(id);
     try {
-      await api.del(`/shop-admin/services/${id}`);
-      removeLocal(id);
+      if (!FEATURES.services) {
+        deleteService(id);
+        removeLocal(id);
+      } else {
+        await api.del(`/shop-admin/services/${id}`);
+        removeLocal(id);
+      }
     } catch (err) {
       alert(
         err instanceof ApiError ? err.message : "Gagal menghapus layanan."

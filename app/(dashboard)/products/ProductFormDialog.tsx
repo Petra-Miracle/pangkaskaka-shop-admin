@@ -5,6 +5,7 @@ import { api, ApiError } from "@/lib/api";
 import { Product, ProductFormData } from "@/lib/types";
 import { useAuth } from "@/contexts/AuthContext";
 import { FEATURES } from "@/lib/features";
+import { createProduct, updateProduct } from "@/lib/storage";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -112,19 +113,15 @@ export function ProductFormDialog({
       };
 
       if (!FEATURES.products) {
-        const summary = [
-          "📦 Data Produk (mode testing):",
-          "",
-          `Nama: ${name}`,
-          `Harga: Rp ${priceFormatted}`,
-          `Stok: ${stock}`,
-          `Kategori: ${category || "-"}`,
-          `Aktif: ${isActive ? "Ya" : "Tidak"}`,
-          `Gambar: ${imagePreview ? "✅ ada" : "❌ tidak ada"}`,
-          "",
-          "Fitur belum aktif (backend belum siap).",
-        ].join("\n");
-        alert(summary);
+        if (product) {
+          const updated = updateProduct(product.id, payload);
+          if (updated) onUpdated?.(product.id, updated);
+        } else {
+          const created = createProduct(payload);
+          onCreated?.(created);
+        }
+        onOpenChange(false);
+        resetForm();
         setLoading(false);
         return;
       }

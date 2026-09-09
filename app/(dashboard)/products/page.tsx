@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { api, ApiError } from "@/lib/api";
 import { FEATURES } from "@/lib/features";
 import { Product } from "@/lib/types";
+import { getProducts, deleteProduct } from "@/lib/storage";
 import { PageHeader } from "@/components/nav/page-header";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -37,6 +38,7 @@ export default function ProductsPage() {
 
   const fetchProducts = useCallback(async () => {
     if (!FEATURES.products) {
+      setProducts(getProducts());
       setLoading(false);
       return;
     }
@@ -106,8 +108,13 @@ export default function ProductsPage() {
     if (!confirm("Yakin ingin menghapus produk ini?")) return;
     setDeleting(id);
     try {
-      await api.del(`/shop-admin/products/${id}`);
-      removeLocal(id);
+      if (!FEATURES.products) {
+        deleteProduct(id);
+        removeLocal(id);
+      } else {
+        await api.del(`/shop-admin/products/${id}`);
+        removeLocal(id);
+      }
     } catch (err) {
       alert(
         err instanceof ApiError ? err.message : "Gagal menghapus produk."

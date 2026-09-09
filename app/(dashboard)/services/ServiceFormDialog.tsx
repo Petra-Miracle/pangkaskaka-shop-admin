@@ -4,6 +4,8 @@ import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { api, ApiError } from "@/lib/api";
 import { Service, ServiceFormData } from "@/lib/types";
+import { FEATURES } from "@/lib/features";
+import { createService, updateService } from "@/lib/storage";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -51,17 +53,36 @@ export function ServiceFormDialog({
     setError(null);
     setLoading(true);
     try {
+      const payload = { ...form, shop_id: selectedShopId };
+
+      if (!FEATURES.services) {
+        if (service) {
+          const updated = updateService(service.id, payload);
+          if (updated) onUpdated?.(service.id, updated);
+        } else {
+          const created = createService(payload);
+          onCreated?.(created);
+        }
+        onOpenChange(false);
+        setForm({
+          name: "",
+          description: "",
+          price: 0,
+          duration_minutes: 30,
+          is_active: true,
+        });
+        setLoading(false);
+        return;
+      }
+
       if (service) {
         const updated = await api.put<Service>(
           `/shop-admin/services/${service.id}`,
-          { ...form, shop_id: selectedShopId }
+          payload
         );
         onUpdated?.(service.id, updated);
       } else {
-        const created = await api.post<Service>("/shop-admin/services", {
-          ...form,
-          shop_id: selectedShopId,
-        });
+        const created = await api.post<Service>("/shop-admin/services", payload);
         onCreated?.(created);
       }
       onOpenChange(false);
