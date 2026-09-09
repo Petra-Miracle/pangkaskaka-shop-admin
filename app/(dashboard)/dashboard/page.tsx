@@ -3,8 +3,11 @@
 import Link from "next/link";
 import { useAuth } from "@/contexts/AuthContext";
 import { useApplicants } from "@/contexts/ApplicantsContext";
+import { useProducts } from "@/contexts/ProductsContext";
+import { useServices } from "@/contexts/ServicesContext";
 import { PageHeader } from "@/components/nav/page-header";
 import { ApplicantStatus } from "@/lib/types";
+import { Package, Scissors, TrendingUp } from "lucide-react";
 
 const SUMMARY_STATUSES: { status: ApplicantStatus[]; label: string; color: string }[] = [
   { status: ["pending"], label: "Menunggu Berkas", color: "var(--color-warning)" },
@@ -20,6 +23,8 @@ const SUMMARY_STATUSES: { status: ApplicantStatus[]; label: string; color: strin
 export default function DashboardPage() {
   const { user, shopsById } = useAuth();
   const { applicants, loading, error } = useApplicants();
+  const { products } = useProducts();
+  const { services } = useServices();
 
   const managedShopIds = user?.managed_shop_ids || [];
 
@@ -53,6 +58,46 @@ export default function DashboardPage() {
             </div>
           );
         })}
+      </div>
+
+      <div className="stagger-children grid grid-cols-1 gap-3 sm:grid-cols-3">
+        <Link href="/products">
+          <div className="glass-card glass-card-hover rounded-2xl p-4 flex items-center gap-3">
+            <div className="rounded-lg bg-primary/10 p-2">
+              <Package className="size-5 text-primary" />
+            </div>
+            <div>
+              <p className="text-2xl font-extrabold text-primary">
+                {products.length}
+              </p>
+              <p className="text-sm font-medium text-muted-foreground">Produk</p>
+            </div>
+          </div>
+        </Link>
+        <Link href="/services">
+          <div className="glass-card glass-card-hover rounded-2xl p-4 flex items-center gap-3">
+            <div className="rounded-lg bg-info/10 p-2">
+              <Scissors className="size-5 text-info" />
+            </div>
+            <div>
+              <p className="text-2xl font-extrabold text-info">
+                {services.length}
+              </p>
+              <p className="text-sm font-medium text-muted-foreground">Layanan</p>
+            </div>
+          </div>
+        </Link>
+        <Link href="/revenue">
+          <div className="glass-card glass-card-hover rounded-2xl p-4 flex items-center gap-3">
+            <div className="rounded-lg bg-success/10 p-2">
+              <TrendingUp className="size-5 text-success" />
+            </div>
+            <div>
+              <p className="text-sm font-extrabold text-success">Revenue</p>
+              <p className="text-sm font-medium text-muted-foreground">Lihat laporan keuangan</p>
+            </div>
+          </div>
+        </Link>
       </div>
 
       <div className="space-y-3">

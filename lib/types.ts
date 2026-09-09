@@ -97,3 +97,78 @@ export const CHAT_ALLOWED_STATUSES: ApplicantStatus[] = [
   "seleksi_berkas_lolos",
   "active",
 ];
+
+export interface Product {
+  id: string;
+  shop_id: string;
+  name: string;
+  description?: string;
+  price: number;
+  stock: number;
+  category?: string;
+  image_url?: string;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ProductFormData {
+  name: string;
+  description?: string;
+  price: number;
+  stock: number;
+  category?: string;
+  image_url?: string;
+  is_active: boolean;
+}
+
+export interface Service {
+  id: string;
+  shop_id: string;
+  name: string;
+  description?: string;
+  price: number;
+  duration_minutes?: number;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ServiceFormData {
+  name: string;
+  description?: string;
+  price: number;
+  duration_minutes?: number;
+  is_active: boolean;
+}
+
+export type TransactionType = "income" | "expense";
+
+export interface Transaction {
+  id: string;
+  shop_id: string;
+  type: TransactionType;
+  amount: number;
+  description: string;
+  category?: string;
+  recorded_by: string;
+  recorded_by_role: string;
+  created_at: string;
+}
+
+export interface RevenueSummary {
+  shop_id: string;
+  total_income: number;
+  total_expense: number;
+  net_profit: number;
+  transaction_count: number;
+  period_start: string;
+  period_end: string;
+}
+
+export interface RevenueFilter {
+  shop_id?: string;
+  type?: TransactionType;
+  start_date?: string;
+  end_date?: string;
+}
