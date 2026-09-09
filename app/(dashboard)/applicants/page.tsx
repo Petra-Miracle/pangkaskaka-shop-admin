@@ -8,6 +8,14 @@ import { useApplicants } from "@/contexts/ApplicantsContext";
 import { PageHeader } from "@/components/nav/page-header";
 import { StatusBadge } from "@/components/StatusBadge";
 import { ApplicantStatus } from "@/lib/types";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 
 const STATUS_OPTIONS: { value: ApplicantStatus | "all"; label: string }[] = [
   { value: "all", label: "Semua Status" },
@@ -89,53 +97,65 @@ function ApplicantsPageInner() {
         </div>
       )}
 
-      {loading ? (
-        <div className="glass-card rounded-2xl p-6 text-center text-sm text-muted-foreground">Memuat...</div>
-      ) : filtered.length === 0 ? (
-        <div className="glass-card rounded-2xl p-6 text-center">
-          <p className="font-semibold text-foreground">Tidak ada pelamar.</p>
-          <p className="mt-1 text-sm text-muted-foreground">
-            {applicants.length === 0
-              ? "Belum ada pelamar StreetBarber untuk toko yang Anda kelola."
-              : "Tidak ada pelamar yang cocok dengan filter saat ini."}
-          </p>
-        </div>
-      ) : (
-        <div className="glass-card rounded-2xl divide-y divide-border">
-          {filtered.map((a) => (
-            <Link key={a.id} href={`/applicants/${a.id}`}>
-              <div className="flex items-center justify-between gap-4 px-5 py-4 transition-colors hover:bg-muted/50">
-                <div className="min-w-0 flex-1">
-                  <p className="truncate text-[15px] font-bold leading-snug text-foreground">
-                    {a.name}
-                  </p>
-                  <p className="mt-1 truncate text-sm text-muted-foreground">
+      <div className="glass-card rounded-2xl">
+        {loading ? (
+          <div className="flex items-center justify-center p-12">
+            <div className="h-6 w-6 animate-spin rounded-full border-2 border-muted border-t-primary" />
+          </div>
+        ) : filtered.length === 0 ? (
+          <div className="p-12 text-center">
+            <p className="font-semibold text-foreground">Tidak ada pelamar.</p>
+            <p className="mt-1 text-sm text-muted-foreground">
+              {applicants.length === 0
+                ? "Belum ada pelamar StreetBarber untuk toko yang Anda kelola."
+                : "Tidak ada pelamar yang cocok dengan filter saat ini."}
+            </p>
+          </div>
+        ) : (
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Nama</TableHead>
+                <TableHead>Toko</TableHead>
+                <TableHead>Email</TableHead>
+                <TableHead>Tanggal</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead className="text-right">Skor</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {filtered.map((a) => (
+                <TableRow key={a.id}>
+                  <TableCell className="font-semibold">
+                    <Link href={`/applicants/${a.id}`} className="hover:underline">
+                      {a.name}
+                    </Link>
+                  </TableCell>
+                  <TableCell className="text-muted-foreground">
                     {shopsById[a.shop_id]?.name || a.shop_id}
-                    <span className="mx-1.5 opacity-40">&middot;</span>
-                    <span className="lowercase">{a.email}</span>
-                  </p>
-                  <p className="mt-0.5 text-xs text-muted-foreground/60">
-                    Diajukan{" "}
+                  </TableCell>
+                  <TableCell className="text-muted-foreground">
+                    {a.email}
+                  </TableCell>
+                  <TableCell className="text-muted-foreground">
                     {new Date(a.created_at).toLocaleDateString("id-ID", {
                       day: "numeric",
                       month: "long",
                       year: "numeric",
                     })}
-                  </p>
-                </div>
-                <div className="flex shrink-0 items-center gap-3">
-                  <StatusBadge status={a.status} />
-                  {a.evaluated_at && (
-                    <span className="whitespace-nowrap text-sm font-semibold tabular-nums text-muted-foreground">
-                      {a.total_score}
-                    </span>
-                  )}
-                </div>
-              </div>
-            </Link>
-          ))}
-        </div>
-      )}
+                  </TableCell>
+                  <TableCell>
+                    <StatusBadge status={a.status} />
+                  </TableCell>
+                  <TableCell className="text-right tabular-nums">
+                    {a.evaluated_at ? a.total_score : "-"}
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        )}
+      </div>
     </div>
   );
 }
