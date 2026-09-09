@@ -96,12 +96,13 @@ export function DataTable<TData>({
       columns,
       getSortedRowModel: getSortedRowModel(),
       getPaginationRowModel: getPaginationRowModel(),
-      state: { sorting: initialSorting, pagination },
+      initialState: { sorting: initialSorting, pagination: { pageIndex: 0, pageSize } },
+      state: { pagination },
       onPaginationChange: setPagination,
       autoResetPageIndex: false,
     }),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [data, columns, initialSorting, pagination.pageIndex, pagination.pageSize]
+    [data, columns, pagination.pageIndex, pagination.pageSize]
   );
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any

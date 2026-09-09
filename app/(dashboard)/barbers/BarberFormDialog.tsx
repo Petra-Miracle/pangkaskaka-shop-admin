@@ -34,6 +34,7 @@ export function BarberFormDialog({
 }: BarberFormDialogProps) {
   const { user, shopsById } = useAuth();
   const [error, setError] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
   const managedShopIds = user?.managed_shop_ids || [];
   const [selectedShopId, setSelectedShopId] = useState(
     barber?.shop_id || managedShopIds[0] || ""
@@ -60,6 +61,7 @@ export function BarberFormDialog({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+    setSubmitting(true);
 
     const payload: BarberFormData & { shop_id: string } = {
       name,
@@ -114,6 +116,8 @@ export function BarberFormDialog({
             : "Gagal menyimpan data karyawan. Silakan coba lagi."
         );
       }
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -215,8 +219,8 @@ export function BarberFormDialog({
             >
               Batal
             </Button>
-            <Button type="submit">
-              {barber ? "Simpan Perubahan" : "Tambah Karyawan"}
+            <Button type="submit" disabled={submitting}>
+              {submitting ? "Menyimpan..." : barber ? "Simpan Perubahan" : "Tambah Karyawan"}
             </Button>
           </DialogFooter>
         </form>

@@ -44,6 +44,7 @@ export function ServiceFormDialog({
 }: ServiceFormDialogProps) {
   const { user, shopsById } = useAuth();
   const [error, setError] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
   const managedShopIds = user?.managed_shop_ids || [];
   const [selectedShopId, setSelectedShopId] = useState(
     service?.shop_id || managedShopIds[0] || ""
@@ -86,6 +87,7 @@ export function ServiceFormDialog({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+    setSubmitting(true);
 
     const payload = { ...form, shop_id: selectedShopId };
 
@@ -130,6 +132,8 @@ export function ServiceFormDialog({
             : "Gagal menyimpan layanan. Silakan coba lagi."
         );
       }
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -255,8 +259,8 @@ export function ServiceFormDialog({
             >
               Batal
             </Button>
-            <Button type="submit">
-              {service ? "Simpan Perubahan" : "Tambah Layanan"}
+            <Button type="submit" disabled={submitting}>
+              {submitting ? "Menyimpan..." : service ? "Simpan Perubahan" : "Tambah Layanan"}
             </Button>
           </DialogFooter>
         </form>

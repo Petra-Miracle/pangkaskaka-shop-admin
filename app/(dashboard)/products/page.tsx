@@ -201,8 +201,10 @@ export default function ProductsPage() {
         ids.forEach((id) => deleteProduct(id));
         ids.forEach((id) => removeLocal(id));
       } else {
-        await Promise.all(ids.map((id) => api.del(`/shop-admin/products/${id}`)));
-        ids.forEach((id) => removeLocal(id));
+        const results = await Promise.allSettled(ids.map((id) => api.del(`/shop-admin/products/${id}`)));
+        ids.forEach((id, i) => {
+          if (results[i].status === "fulfilled") removeLocal(id);
+        });
       }
       setSelectedIds(new Set());
     } catch (err) {

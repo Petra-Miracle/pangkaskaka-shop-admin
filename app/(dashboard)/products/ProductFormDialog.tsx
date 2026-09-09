@@ -54,6 +54,7 @@ export function ProductFormDialog({
   const { user, shopsById } = useAuth();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [error, setError] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
 
   const [name, setName] = useState(product?.name || "");
   const [description, setDescription] = useState(product?.description || "");
@@ -112,6 +113,7 @@ export function ProductFormDialog({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+    setSubmitting(true);
 
     const payload: ProductFormData & { shop_id: string; image_url?: string } = {
       name,
@@ -168,6 +170,8 @@ export function ProductFormDialog({
             : "Gagal menyimpan produk. Silakan coba lagi."
         );
       }
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -348,8 +352,8 @@ export function ProductFormDialog({
             >
               Batal
             </Button>
-            <Button type="submit">
-              {product ? "Simpan Perubahan" : "Tambah Produk"}
+            <Button type="submit" disabled={submitting}>
+              {submitting ? "Menyimpan..." : product ? "Simpan Perubahan" : "Tambah Produk"}
             </Button>
           </DialogFooter>
         </form>

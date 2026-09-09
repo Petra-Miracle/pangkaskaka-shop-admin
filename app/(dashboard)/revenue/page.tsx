@@ -17,7 +17,13 @@ import * as XLSX from "xlsx";
 export default function RevenuePage() {
   const { user, shopsById } = useAuth();
   const managedShopIds = user?.managed_shop_ids || [];
-  const [selectedShopId, setSelectedShopId] = useState(managedShopIds[0] || "");
+  const [selectedShopId, setSelectedShopId] = useState("");
+
+  useEffect(() => {
+    if (!selectedShopId && managedShopIds.length > 0) {
+      setSelectedShopId(managedShopIds[0]);
+    }
+  }, [managedShopIds, selectedShopId]);
 
   const [summary, setSummary] = useState<RevenueSummary | null>(null);
   const [transactions, setTransactions] = useState<Transaction[]>([]);

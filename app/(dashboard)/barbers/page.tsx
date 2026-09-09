@@ -200,8 +200,10 @@ export default function BarbersPage() {
         ids.forEach((id) => deleteBarber(id));
         ids.forEach((id) => removeLocal(id));
       } else {
-        await Promise.all(ids.map((id) => api.del(`/shop-admin/barbers/${id}`)));
-        ids.forEach((id) => removeLocal(id));
+        const results = await Promise.allSettled(ids.map((id) => api.del(`/shop-admin/barbers/${id}`)));
+        ids.forEach((id, i) => {
+          if (results[i].status === "fulfilled") removeLocal(id);
+        });
       }
       setSelectedIds(new Set());
     } catch (err) {
