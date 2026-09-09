@@ -11,7 +11,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RevenueSummaryCards } from "./RevenueSummaryCards";
 import { RevenueTable } from "./RevenueTable";
-import { Eye } from "lucide-react";
+import { Eye, Download } from "lucide-react";
+import * as XLSX from "xlsx";
 
 export default function RevenuePage() {
   const { user, shopsById } = useAuth();
@@ -71,6 +72,36 @@ export default function RevenuePage() {
   useEffect(() => {
     fetchData();
   }, [fetchData]);
+
+  const handleExport = () => {
+    if (transactions.length === 0) return;
+
+    const data = transactions.map((tx) => ({
+      Tanggal: new Date(tx.created_at).toLocaleDateString("id-ID"),
+      Deskripsi: tx.description,
+      Kategori: tx.category || "-",
+      Tipe: tx.type === "income" ? "Pendapatan" : "Pengeluaran",
+      Jumlah: tx.type === "income" ? tx.amount : -tx.amount,
+      "Dicatat Oleh": tx.recorded_by_role,
+    }));
+
+    const ws = XLSX.utils.json_to_sheet(data);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Revenue");
+
+    const colWidths = [
+      { wch: 12 },
+      { wch: 30 },
+      { wch: 15 },
+      { wch: 12 },
+      { wch: 15 },
+      { wch: 15 },
+    ];
+    ws["!cols"] = colWidths;
+
+    const fileName = `Revenue_${selectedShopId}_${startDate || "all"}_${endDate || "all"}.xlsx`;
+    XLSX.writeFile(wb, fileName);
+  };
 
   return (
     <div className="space-y-6">
@@ -151,6 +182,16 @@ export default function RevenuePage() {
             disabled={loading}
           >
             Muat Ulang
+          </Button>
+
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleExport}
+            disabled={loading || transactions.length === 0}
+          >
+            <Download className="mr-1.5 size-4" />
+            Export Excel
           </Button>
         </div>
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { api, ApiError } from "@/lib/api";
 import { Service, ServiceFormData } from "@/lib/types";
@@ -43,8 +43,11 @@ export function ServiceFormDialog({
   onUpdated,
 }: ServiceFormDialogProps) {
   const { user, shopsById } = useAuth();
-  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const managedShopIds = user?.managed_shop_ids || [];
+  const [selectedShopId, setSelectedShopId] = useState(
+    service?.shop_id || managedShopIds[0] || ""
+  );
   const [form, setForm] = useState<ServiceFormData>({
     name: service?.name || "",
     description: service?.description || "",
@@ -56,6 +59,22 @@ export function ServiceFormDialog({
   const [priceRaw, setPriceRaw] = useState(
     service?.price ? String(service.price) : ""
   );
+
+  useEffect(() => {
+    if (open) {
+      setForm({
+        name: service?.name || "",
+        description: service?.description || "",
+        price: service?.price || 0,
+        duration_minutes: service?.duration_minutes || 30,
+        is_active: service?.is_active ?? true,
+      });
+      setPriceRaw(service?.price ? String(service.price) : "");
+      setSelectedShopId(service?.shop_id || managedShopIds[0] || "");
+      setError(null);
+    }
+  }, [open, service, managedShopIds]);
+
   const priceFormatted = formatRupiahInput(priceRaw);
 
   const handlePriceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -64,15 +83,9 @@ export function ServiceFormDialog({
     setForm({ ...form, price: Number(raw) });
   };
 
-  const managedShopIds = user?.managed_shop_ids || [];
-  const [selectedShopId, setSelectedShopId] = useState(
-    service?.shop_id || managedShopIds[0] || ""
-  );
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
-    setLoading(true);
     try {
       const payload = { ...form, shop_id: selectedShopId };
 
@@ -85,15 +98,6 @@ export function ServiceFormDialog({
           onCreated?.(created);
         }
         onOpenChange(false);
-        setForm({
-          name: "",
-          description: "",
-          price: 0,
-          duration_minutes: 30,
-          is_active: true,
-        });
-        setPriceRaw("");
-        setLoading(false);
         return;
       }
 
@@ -108,14 +112,6 @@ export function ServiceFormDialog({
         onCreated?.(created);
       }
       onOpenChange(false);
-      setForm({
-        name: "",
-        description: "",
-        price: 0,
-        duration_minutes: 30,
-        is_active: true,
-      });
-      setPriceRaw("");
     } catch (err) {
       if (err instanceof ApiError && err.status === 404) {
         setError("Fitur layanan belum tersedia di server.");
@@ -126,8 +122,6 @@ export function ServiceFormDialog({
             : "Gagal menyimpan layanan. Silakan coba lagi."
         );
       }
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -253,12 +247,8 @@ export function ServiceFormDialog({
             >
               Batal
             </Button>
-            <Button type="submit" disabled={loading}>
-              {loading
-                ? "Menyimpan..."
-                : service
-                  ? "Simpan Perubahan"
-                  : "Tambah Layanan"}
+            <Button type="submit">
+              {service ? "Simpan Perubahan" : "Tambah Layanan"}
             </Button>
           </DialogFooter>
         </form>

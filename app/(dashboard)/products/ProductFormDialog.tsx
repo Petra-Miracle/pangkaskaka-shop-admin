@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { api, ApiError } from "@/lib/api";
 import { Product, ProductFormData } from "@/lib/types";
 import { useAuth } from "@/contexts/AuthContext";
@@ -53,7 +53,6 @@ export function ProductFormDialog({
 }: ProductFormDialogProps) {
   const { user, shopsById } = useAuth();
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const [name, setName] = useState(product?.name || "");
@@ -70,6 +69,20 @@ export function ProductFormDialog({
   const [selectedShopId, setSelectedShopId] = useState(
     product?.shop_id || managedShopIds[0] || ""
   );
+
+  useEffect(() => {
+    if (open) {
+      setName(product?.name || "");
+      setDescription(product?.description || "");
+      setPriceRaw(product?.price ? String(product.price) : "");
+      setStock(product?.stock ?? 0);
+      setCategory(product?.category || "");
+      setImagePreview(product?.image_url || "");
+      setIsActive(product?.is_active ?? true);
+      setSelectedShopId(product?.shop_id || managedShopIds[0] || "");
+      setError(null);
+    }
+  }, [open, product, managedShopIds]);
 
   const priceFormatted = formatRupiahInput(priceRaw);
 
@@ -99,7 +112,6 @@ export function ProductFormDialog({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
-    setLoading(true);
     try {
       const payload: ProductFormData & { shop_id: string; image_url?: string } = {
         name,
@@ -121,8 +133,6 @@ export function ProductFormDialog({
           onCreated?.(created);
         }
         onOpenChange(false);
-        resetForm();
-        setLoading(false);
         return;
       }
 
@@ -140,7 +150,6 @@ export function ProductFormDialog({
         onCreated?.(created);
       }
       onOpenChange(false);
-      resetForm();
     } catch (err) {
       if (err instanceof ApiError && err.status === 404) {
         setError("Fitur produk belum tersedia di server.");
@@ -151,19 +160,7 @@ export function ProductFormDialog({
             : "Gagal menyimpan produk. Silakan coba lagi."
         );
       }
-    } finally {
-      setLoading(false);
     }
-  };
-
-  const resetForm = () => {
-    setName("");
-    setDescription("");
-    setPriceRaw("");
-    setStock(0);
-    setCategory("");
-    setImagePreview("");
-    setIsActive(true);
   };
 
   return (
@@ -343,12 +340,8 @@ export function ProductFormDialog({
             >
               Batal
             </Button>
-            <Button type="submit" disabled={loading}>
-              {loading
-                ? "Menyimpan..."
-                : product
-                  ? "Simpan Perubahan"
-                  : "Tambah Produk"}
+            <Button type="submit">
+              {product ? "Simpan Perubahan" : "Tambah Produk"}
             </Button>
           </DialogFooter>
         </form>

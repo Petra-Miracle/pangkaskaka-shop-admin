@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { api, ApiError } from "@/lib/api";
 import { FEATURES } from "@/lib/features";
 import { Service } from "@/lib/types";
@@ -133,17 +133,17 @@ export default function ServicesPage() {
     setServices((prev) => prev.filter((s) => s.id !== id));
   }, []);
 
-  const handleEdit = (svc: Service) => {
+  const handleEdit = useCallback((svc: Service) => {
     setEditingService(svc);
     setDialogOpen(true);
-  };
+  }, []);
 
-  const handleAdd = () => {
+  const handleAdd = useCallback(() => {
     setEditingService(undefined);
     setDialogOpen(true);
-  };
+  }, []);
 
-  const handleDelete = async (id: string) => {
+  const handleDelete = useCallback(async (id: string) => {
     if (!confirm("Yakin ingin menghapus layanan ini?")) return;
     try {
       if (!FEATURES.services) {
@@ -156,13 +156,17 @@ export default function ServicesPage() {
     } catch (err) {
       alert(err instanceof ApiError ? err.message : "Gagal menghapus layanan.");
     }
-  };
+  }, [removeLocal]);
 
-  const enrichedData: ServiceRow[] = services.map((s) => ({
-    ...s,
-    _onEdit: handleEdit,
-    _onDelete: handleDelete,
-  }));
+  const enrichedData = useMemo(
+    (): ServiceRow[] =>
+      services.map((s) => ({
+        ...s,
+        _onEdit: handleEdit,
+        _onDelete: handleDelete,
+      })),
+    [services, handleEdit, handleDelete]
+  );
 
   return (
     <div className="space-y-6">

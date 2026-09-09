@@ -166,17 +166,17 @@ export default function ProductsPage() {
     [products, filterCategory]
   );
 
-  const handleEdit = (product: Product) => {
+  const handleEdit = useCallback((product: Product) => {
     setEditingProduct(product);
     setDialogOpen(true);
-  };
+  }, []);
 
-  const handleAdd = () => {
+  const handleAdd = useCallback(() => {
     setEditingProduct(undefined);
     setDialogOpen(true);
-  };
+  }, []);
 
-  const handleDelete = async (id: string) => {
+  const handleDelete = useCallback(async (id: string) => {
     if (!confirm("Yakin ingin menghapus produk ini?")) return;
     try {
       if (!FEATURES.products) {
@@ -189,7 +189,7 @@ export default function ProductsPage() {
     } catch (err) {
       alert(err instanceof ApiError ? err.message : "Gagal menghapus produk.");
     }
-  };
+  }, [removeLocal]);
 
   const enrichedData = useMemo(
     (): ProductRow[] =>
@@ -198,7 +198,7 @@ export default function ProductsPage() {
         _onEdit: handleEdit,
         _onDelete: handleDelete,
       })),
-    [filtered]
+    [filtered, handleEdit, handleDelete]
   );
 
   return (

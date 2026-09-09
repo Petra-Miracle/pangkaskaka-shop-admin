@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Image from "next/image";
 import { PanelLeftClose, PanelLeftOpen } from "lucide-react";
 import { NAV_SECTIONS } from "@/lib/nav-items";
@@ -13,9 +13,11 @@ const COLLAPSED_KEY = "pk_admin_sidebar_collapsed";
 
 export function Sidebar() {
   const pathname = usePathname();
-  const [collapsed, setCollapsed] = useState(
-    () => typeof window !== "undefined" && window.localStorage.getItem(COLLAPSED_KEY) === "1"
-  );
+  const [collapsed, setCollapsed] = useState(false);
+
+  useEffect(() => {
+    setCollapsed(window.localStorage.getItem(COLLAPSED_KEY) === "1");
+  }, []);
 
   function toggleCollapsed() {
     setCollapsed((c) => {
