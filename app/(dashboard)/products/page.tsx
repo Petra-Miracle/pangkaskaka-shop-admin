@@ -204,7 +204,20 @@ export default function ProductsPage() {
               {filtered.map((product) => (
                 <TableRow key={product.id}>
                   <TableCell className="font-medium">
-                    {product.name}
+                    <div className="flex items-center gap-2">
+                      {product.image_url ? (
+                        <img
+                          src={product.image_url}
+                          alt={product.name}
+                          className="size-8 rounded object-cover"
+                        />
+                      ) : (
+                        <div className="flex size-8 items-center justify-center rounded bg-muted text-xs text-muted-foreground">
+                          -
+                        </div>
+                      )}
+                      <span>{product.name}</span>
+                    </div>
                   </TableCell>
                   <TableCell>
                     {product.category ? (
