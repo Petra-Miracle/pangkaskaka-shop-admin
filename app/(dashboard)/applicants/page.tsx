@@ -114,40 +114,40 @@ function ApplicantsPageInner() {
         ) : (
           <Table>
             <TableHeader>
-              <TableRow>
-                <TableHead>Nama</TableHead>
-                <TableHead>Toko</TableHead>
-                <TableHead>Email</TableHead>
-                <TableHead>Tanggal</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead className="text-right">Skor</TableHead>
+              <TableRow className="border-b">
+                <TableHead className="py-3">Nama</TableHead>
+                <TableHead className="py-3">Toko</TableHead>
+                <TableHead className="py-3">Email</TableHead>
+                <TableHead className="py-3">Tanggal</TableHead>
+                <TableHead className="py-3">Status</TableHead>
+                <TableHead className="py-3 text-right">Skor</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {filtered.map((a) => (
-                <TableRow key={a.id}>
-                  <TableCell className="font-semibold">
+                <TableRow key={a.id} className="border-b last:border-b-0">
+                  <TableCell className="py-4 font-semibold">
                     <Link href={`/applicants/${a.id}`} className="hover:underline">
                       {a.name}
                     </Link>
                   </TableCell>
-                  <TableCell className="text-muted-foreground">
+                  <TableCell className="py-4 text-muted-foreground">
                     {shopsById[a.shop_id]?.name || a.shop_id}
                   </TableCell>
-                  <TableCell className="text-muted-foreground">
+                  <TableCell className="py-4 text-muted-foreground">
                     {a.email}
                   </TableCell>
-                  <TableCell className="text-muted-foreground">
+                  <TableCell className="py-4 text-muted-foreground">
                     {new Date(a.created_at).toLocaleDateString("id-ID", {
                       day: "numeric",
                       month: "long",
                       year: "numeric",
                     })}
                   </TableCell>
-                  <TableCell>
+                  <TableCell className="py-4">
                     <StatusBadge status={a.status} />
                   </TableCell>
-                  <TableCell className="text-right tabular-nums">
+                  <TableCell className="py-4 text-right tabular-nums">
                     {a.evaluated_at ? a.total_score : "-"}
                   </TableCell>
                 </TableRow>

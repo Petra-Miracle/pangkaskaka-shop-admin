@@ -198,19 +198,19 @@ export default function ProductsPage() {
         ) : (
           <Table>
             <TableHeader>
-              <TableRow>
-                <TableHead>Nama</TableHead>
-                <TableHead>Kategori</TableHead>
-                <TableHead className="text-right">Harga</TableHead>
-                <TableHead className="text-right">Stok</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead className="text-right">Aksi</TableHead>
+              <TableRow className="border-b">
+                <TableHead className="py-3">Nama</TableHead>
+                <TableHead className="py-3">Kategori</TableHead>
+                <TableHead className="py-3 text-right">Harga</TableHead>
+                <TableHead className="py-3 text-right">Stok</TableHead>
+                <TableHead className="py-3">Status</TableHead>
+                <TableHead className="py-3 text-right">Aksi</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {filtered.map((product) => (
-                <TableRow key={product.id}>
-                  <TableCell className="font-medium">
+                <TableRow key={product.id} className="border-b last:border-b-0">
+                  <TableCell className="py-4 font-medium">
                     <div className="flex items-center gap-2">
                       {product.image_url ? (
                         <img
@@ -226,17 +226,17 @@ export default function ProductsPage() {
                       <span>{product.name}</span>
                     </div>
                   </TableCell>
-                  <TableCell>
+                  <TableCell className="py-4">
                     {product.category ? (
                       <Badge variant="outline">{product.category}</Badge>
                     ) : (
                       <span className="text-muted-foreground">-</span>
                     )}
                   </TableCell>
-                  <TableCell className="text-right">
+                  <TableCell className="py-4 text-right">
                     {formatRupiah(product.price)}
                   </TableCell>
-                  <TableCell className="text-right">
+                  <TableCell className="py-4 text-right">
                     <span
                       className={
                         product.stock <= 5
@@ -247,7 +247,7 @@ export default function ProductsPage() {
                       {product.stock}
                     </span>
                   </TableCell>
-                  <TableCell>
+                  <TableCell className="py-4">
                     {product.is_active ? (
                       <Badge className="bg-success/15 text-success">
                         Aktif
@@ -256,7 +256,7 @@ export default function ProductsPage() {
                       <Badge variant="secondary">Nonaktif</Badge>
                     )}
                   </TableCell>
-                  <TableCell className="text-right">
+                  <TableCell className="py-4 text-right">
                     <div className="flex justify-end gap-1">
                       <Button
                         variant="ghost"
