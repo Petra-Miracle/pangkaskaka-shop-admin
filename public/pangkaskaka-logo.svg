@@ -1,4 +1,39 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64">
-  <rect width="64" height="64" rx="12" fill="#6366f1"/>
-  <text x="50%" y="55%" dominant-baseline="middle" text-anchor="middle" fill="white" font-family="system-ui, sans-serif" font-size="20" font-weight="800">KK</text>
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#2196F3"/>
+      <stop offset="100%" stop-color="#1565C0"/>
+    </linearGradient>
+    <clipPath id="rounded">
+      <rect width="512" height="512" rx="96" ry="96"/>
+    </clipPath>
+  </defs>
+  <g clip-path="url(#rounded)">
+    <rect width="512" height="512" fill="url(#bg)"/>
+    <!-- Border glow -->
+    <rect x="8" y="8" width="496" height="496" rx="88" ry="88" fill="none" stroke="rgba(255,255,255,0.3)" stroke-width="6"/>
+    <!-- Head silhouette -->
+    <g transform="translate(256, 180) scale(1.1)" fill="none" stroke="white" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+      <!-- Hair top -->
+      <path d="M-60,-80 C-60,-120 -20,-140 20,-135 C60,-130 90,-110 95,-75 C98,-55 85,-40 70,-35"/>
+      <!-- Forehead to nose -->
+      <path d="M70,-35 C60,-30 65,-10 70,5 C75,20 85,40 80,60"/>
+      <!-- Nose -->
+      <path d="M80,60 C78,68 72,75 65,78"/>
+      <!-- Lips and chin -->
+      <path d="M65,78 C58,82 55,90 50,100 C45,115 30,135 15,145"/>
+      <!-- Neck -->
+      <path d="M15,145 C10,155 5,165 0,170"/>
+      <!-- Back of head -->
+      <path d="M-60,-80 C-75,-60 -85,-30 -82,0 C-79,25 -70,50 -55,70"/>
+      <!-- Ear area -->
+      <path d="M-55,70 C-45,85 -35,95 -25,100"/>
+      <!-- Jaw line -->
+      <path d="M-25,100 C-10,115 0,130 15,145"/>
+      <!-- Hair detail -->
+      <path d="M-30,-120 C-10,-130 20,-128 45,-118" opacity="0.6"/>
+    </g>
+    <!-- Text PANGKAS KAKA -->
+    <text x="256" y="420" text-anchor="middle" fill="white" font-family="Arial, Helvetica, sans-serif" font-size="62" font-weight="800" letter-spacing="4">PANGKAS KAKA</text>
+  </g>
 </svg>
