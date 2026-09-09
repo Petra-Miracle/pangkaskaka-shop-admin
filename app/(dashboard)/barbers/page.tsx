@@ -4,14 +4,14 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { api, ApiError } from "@/lib/api";
 import { FEATURES } from "@/lib/features";
 import { Barber } from "@/lib/types";
-import { getBarbers, createBarber, updateBarber, deleteBarber } from "@/lib/storage";
+import { getBarbers, deleteBarber } from "@/lib/storage";
 import { PageHeader } from "@/components/nav/page-header";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { DataTable, legacyCreateColumnHelper } from "@/components/ui/data-table";
 import type { LegacyColumnDef } from "@tanstack/react-table/legacy";
 import { BarberFormDialog } from "./BarberFormDialog";
-import { Plus, Pencil, Trash2, Users } from "lucide-react";
+import { Plus, Pencil, Trash2, Trash, Users } from "lucide-react";
 
 type BarberRow = Barber & {
   _onEdit?: (b: Barber) => void;
@@ -117,6 +117,7 @@ export default function BarbersPage() {
   const [error, setError] = useState<string | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingBarber, setEditingBarber] = useState<Barber | undefined>();
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 
   const fetchBarbers = useCallback(async () => {
     if (!FEATURES.barbers) {
@@ -190,6 +191,24 @@ export default function BarbersPage() {
     [removeLocal]
   );
 
+  const handleBulkDelete = useCallback(async () => {
+    if (selectedIds.size === 0) return;
+    if (!confirm(`Yakin ingin menghapus ${selectedIds.size} karyawan yang dipilih?`)) return;
+    try {
+      const ids = Array.from(selectedIds);
+      if (!FEATURES.barbers) {
+        ids.forEach((id) => deleteBarber(id));
+        ids.forEach((id) => removeLocal(id));
+      } else {
+        await Promise.all(ids.map((id) => api.del(`/shop-admin/barbers/${id}`)));
+        ids.forEach((id) => removeLocal(id));
+      }
+      setSelectedIds(new Set());
+    } catch (err) {
+      alert(err instanceof ApiError ? err.message : "Gagal menghapus karyawan.");
+    }
+  }, [selectedIds, removeLocal]);
+
   const enrichedData = useMemo(
     (): BarberRow[] =>
       barbers.map((b) => ({
@@ -234,6 +253,24 @@ export default function BarbersPage() {
           loading={loading}
           initialSorting={[{ id: "name", desc: false }]}
           pageSize={10}
+          selectedIds={selectedIds}
+          onSelectionChange={setSelectedIds}
+          getRowId={(row) => row.id}
+          selectionBar={
+            <div className="flex items-center justify-between border-b border-border bg-primary/5 px-4 py-2">
+              <span className="text-sm font-medium text-primary">
+                {selectedIds.size} karyawan dipilih
+              </span>
+              <Button
+                variant="destructive"
+                size="sm"
+                onClick={handleBulkDelete}
+              >
+                <Trash className="mr-1.5 size-4" />
+                Hapus Terpilih
+              </Button>
+            </div>
+          }
           emptyState={
             <p className="text-sm text-muted-foreground">
               {error ? "Belum ada data." : "Belum ada karyawan."}

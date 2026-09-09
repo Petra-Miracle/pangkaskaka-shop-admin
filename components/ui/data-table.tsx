@@ -32,6 +32,10 @@ type DataTableProps<TData> = {
   initialSorting?: { id: string; desc: boolean }[];
   pageSize?: number;
   pageSizeOptions?: number[];
+  selectedIds?: Set<string>;
+  onSelectionChange?: (ids: Set<string>) => void;
+  getRowId?: (row: TData) => string;
+  selectionBar?: React.ReactNode;
 };
 
 export function DataTable<TData>({
@@ -45,8 +49,46 @@ export function DataTable<TData>({
   initialSorting,
   pageSize = 10,
   pageSizeOptions = [10, 25, 50],
+  selectedIds,
+  onSelectionChange,
+  getRowId,
+  selectionBar,
 }: DataTableProps<TData>) {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- legacy v8-compat hook is generic over any row type
+  const [internalSelection, setInternalSelection] = React.useState<Record<string, boolean>>({});
+
+  const selection = selectedIds ?? new Set(Object.keys(internalSelection).filter((k) => internalSelection[k]));
+  const setSelection = onSelectionChange
+    ? onSelectionChange
+    : (ids: Set<string>) => {
+        const record: Record<string, boolean> = {};
+        ids.forEach((id) => (record[id] = true));
+        setInternalSelection(record);
+      };
+
+  const handleSelectionChange = (rowId: string, checked: boolean) => {
+    const next = new Set(selection);
+    if (checked) {
+      next.add(rowId);
+    } else {
+      next.delete(rowId);
+    }
+    setSelection(next);
+  };
+
+  const handleSelectAll = (checked: boolean) => {
+    if (checked) {
+      const allIds = new Set(data.map((row, i) => (getRowId ? getRowId(row) : String(i))));
+      setSelection(allIds);
+    } else {
+      setSelection(new Set());
+    }
+  };
+
+  const allPageIds = data.map((row, i) => (getRowId ? getRowId(row) : String(i)));
+  const allSelected = allPageIds.length > 0 && allPageIds.every((id) => selection.has(id));
+  const someSelected = allPageIds.some((id) => selection.has(id)) && !allSelected;
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const table = (useLegacyTable as unknown as (o: object) => LegacyReactTable<any>)({
     data,
     columns,
@@ -62,13 +104,30 @@ export function DataTable<TData>({
   const from = totalRows === 0 ? 0 : pageIndex * currentPageSize + 1;
   const to = Math.min(totalRows, (pageIndex + 1) * currentPageSize);
 
+  const showSelection = !!onSelectionChange;
+
   return (
     <div className={cn("flex flex-col", className)}>
+      {showSelection && selection.size > 0 && selectionBar}
+
       <div className="overflow-x-auto">
         <Table>
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id} className="hover:bg-transparent">
+                {showSelection && (
+                  <TableHead className="sticky top-0 z-10 h-10 w-10 bg-muted/90 backdrop-blur-md">
+                    <input
+                      type="checkbox"
+                      checked={allSelected}
+                      ref={(el) => {
+                        if (el) el.indeterminate = someSelected;
+                      }}
+                      onChange={(e) => handleSelectAll(e.target.checked)}
+                      className="h-4 w-4 rounded border-input"
+                    />
+                  </TableHead>
+                )}
                 {headerGroup.headers.map((header) => {
                   const canSort = header.column.getCanSort();
                   const sorted = header.column.getIsSorted();
@@ -98,6 +157,11 @@ export function DataTable<TData>({
             {loading
               ? Array.from({ length: skeletonRows }).map((_, i) => (
                   <TableRow key={`skeleton-${i}`} className="hover:bg-transparent">
+                    {showSelection && (
+                      <TableCell className="py-3 w-10">
+                        <div className="skeleton h-4 w-4 rounded" />
+                      </TableCell>
+                    )}
                     {table.getVisibleLeafColumns().map((column) => (
                       <TableCell key={column.id} className="py-3">
                         <div
@@ -117,7 +181,7 @@ export function DataTable<TData>({
                 ? (
                     <TableRow className="hover:bg-transparent">
                       <TableCell
-                        colSpan={table.getVisibleLeafColumns().length}
+                        colSpan={table.getVisibleLeafColumns().length + (showSelection ? 1 : 0)}
                         className="py-14 text-center"
                       >
                         {emptyState ?? (
@@ -126,22 +190,36 @@ export function DataTable<TData>({
                       </TableCell>
                     </TableRow>
                   )
-                : rows.map((row) => (
-                    <TableRow
-                      key={row.id}
-                      className={cn(
-                        "transition-colors hover:bg-primary/[0.03]",
-                        onRowClick && "cursor-pointer"
-                      )}
-                      onClick={onRowClick ? () => onRowClick(row.original) : undefined}
-                    >
-                      {row.getVisibleCells().map((cell) => (
-                        <TableCell key={cell.id}>
-                          {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                        </TableCell>
-                      ))}
-                    </TableRow>
-                  ))}
+                : rows.map((row, rowIndex) => {
+                    const rowId = getRowId ? getRowId(row.original) : String(rowIndex);
+                    const isChecked = selection.has(rowId);
+                    return (
+                      <TableRow
+                        key={row.id}
+                        className={cn(
+                          "transition-colors hover:bg-primary/[0.03]",
+                          onRowClick && "cursor-pointer"
+                        )}
+                        onClick={onRowClick ? () => onRowClick(row.original) : undefined}
+                      >
+                        {showSelection && (
+                          <TableCell className="w-10" onClick={(e) => e.stopPropagation()}>
+                            <input
+                              type="checkbox"
+                              checked={isChecked}
+                              onChange={(e) => handleSelectionChange(rowId, e.target.checked)}
+                              className="h-4 w-4 rounded border-input"
+                            />
+                          </TableCell>
+                        )}
+                        {row.getVisibleCells().map((cell) => (
+                          <TableCell key={cell.id}>
+                            {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                          </TableCell>
+                        ))}
+                      </TableRow>
+                    );
+                  })}
           </TableBody>
         </Table>
       </div>
@@ -152,6 +230,12 @@ export function DataTable<TData>({
             <span className="tabular-nums">
               {from}–{to} dari {totalRows}
             </span>
+            {showSelection && selection.size > 0 && (
+              <>
+                <span className="text-muted-foreground/40">·</span>
+                <span className="font-medium text-primary">{selection.size} dipilih</span>
+              </>
+            )}
             <span className="text-muted-foreground/40">·</span>
             <div className="flex items-center gap-0.5 rounded-lg border border-border bg-background/60 p-0.5">
               {pageSizeOptions.map((size) => (

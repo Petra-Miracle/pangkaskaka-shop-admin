@@ -12,7 +12,7 @@ import { Badge } from "@/components/ui/badge";
 import { DataTable, legacyCreateColumnHelper } from "@/components/ui/data-table";
 import type { LegacyColumnDef } from "@tanstack/react-table/legacy";
 import { ProductFormDialog } from "./ProductFormDialog";
-import { Plus, Pencil, Trash2 } from "lucide-react";
+import { Plus, Pencil, Trash2, Trash } from "lucide-react";
 
 type ProductRow = Product & { _onEdit?: (p: Product) => void; _onDelete?: (id: string) => void };
 
@@ -117,6 +117,7 @@ export default function ProductsPage() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | undefined>();
   const [filterCategory, setFilterCategory] = useState<string>("all");
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 
   const fetchProducts = useCallback(async () => {
     if (!FEATURES.products) {
@@ -191,6 +192,24 @@ export default function ProductsPage() {
     }
   }, [removeLocal]);
 
+  const handleBulkDelete = useCallback(async () => {
+    if (selectedIds.size === 0) return;
+    if (!confirm(`Yakin ingin menghapus ${selectedIds.size} produk yang dipilih?`)) return;
+    try {
+      const ids = Array.from(selectedIds);
+      if (!FEATURES.products) {
+        ids.forEach((id) => deleteProduct(id));
+        ids.forEach((id) => removeLocal(id));
+      } else {
+        await Promise.all(ids.map((id) => api.del(`/shop-admin/products/${id}`)));
+        ids.forEach((id) => removeLocal(id));
+      }
+      setSelectedIds(new Set());
+    } catch (err) {
+      alert(err instanceof ApiError ? err.message : "Gagal menghapus produk.");
+    }
+  }, [selectedIds, removeLocal]);
+
   const enrichedData = useMemo(
     (): ProductRow[] =>
       filtered.map((p) => ({
@@ -263,6 +282,24 @@ export default function ProductsPage() {
           loading={loading}
           initialSorting={[{ id: "name", desc: false }]}
           pageSize={10}
+          selectedIds={selectedIds}
+          onSelectionChange={setSelectedIds}
+          getRowId={(row) => row.id}
+          selectionBar={
+            <div className="flex items-center justify-between border-b border-border bg-primary/5 px-4 py-2">
+              <span className="text-sm font-medium text-primary">
+                {selectedIds.size} produk dipilih
+              </span>
+              <Button
+                variant="destructive"
+                size="sm"
+                onClick={handleBulkDelete}
+              >
+                <Trash className="mr-1.5 size-4" />
+                Hapus Terpilih
+              </Button>
+            </div>
+          }
           emptyState={
             <p className="text-sm text-muted-foreground">
               {error ? "Belum ada data." : "Belum ada produk."}

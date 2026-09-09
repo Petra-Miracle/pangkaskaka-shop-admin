@@ -12,7 +12,7 @@ import { Badge } from "@/components/ui/badge";
 import { DataTable, legacyCreateColumnHelper } from "@/components/ui/data-table";
 import type { LegacyColumnDef } from "@tanstack/react-table/legacy";
 import { ServiceFormDialog } from "./ServiceFormDialog";
-import { Plus, Pencil, Trash2 } from "lucide-react";
+import { Plus, Pencil, Trash2, Trash } from "lucide-react";
 
 type ServiceRow = Service & { _onEdit?: (s: Service) => void; _onDelete?: (id: string) => void };
 
@@ -94,6 +94,7 @@ export default function ServicesPage() {
   const [error, setError] = useState<string | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingService, setEditingService] = useState<Service | undefined>();
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 
   const fetchServices = useCallback(async () => {
     if (!FEATURES.services) {
@@ -108,7 +109,7 @@ export default function ServicesPage() {
       setServices(res.services || []);
     } catch (err) {
       if (err instanceof ApiError && err.status === 404) {
-        setError("Fitur layanan belum tersedia di server.");
+        setServices(getServices());
       } else {
         setError(err instanceof Error ? err.message : "Gagal memuat daftar layanan.");
       }
@@ -158,6 +159,24 @@ export default function ServicesPage() {
     }
   }, [removeLocal]);
 
+  const handleBulkDelete = useCallback(async () => {
+    if (selectedIds.size === 0) return;
+    if (!confirm(`Yakin ingin menghapus ${selectedIds.size} layanan yang dipilih?`)) return;
+    try {
+      const ids = Array.from(selectedIds);
+      if (!FEATURES.services) {
+        ids.forEach((id) => deleteService(id));
+        ids.forEach((id) => removeLocal(id));
+      } else {
+        await Promise.all(ids.map((id) => api.del(`/shop-admin/services/${id}`)));
+        ids.forEach((id) => removeLocal(id));
+      }
+      setSelectedIds(new Set());
+    } catch (err) {
+      alert(err instanceof ApiError ? err.message : "Gagal menghapus layanan.");
+    }
+  }, [selectedIds, removeLocal]);
+
   const enrichedData = useMemo(
     (): ServiceRow[] =>
       services.map((s) => ({
@@ -202,6 +221,24 @@ export default function ServicesPage() {
           loading={loading}
           initialSorting={[{ id: "name", desc: false }]}
           pageSize={10}
+          selectedIds={selectedIds}
+          onSelectionChange={setSelectedIds}
+          getRowId={(row) => row.id}
+          selectionBar={
+            <div className="flex items-center justify-between border-b border-border bg-primary/5 px-4 py-2">
+              <span className="text-sm font-medium text-primary">
+                {selectedIds.size} layanan dipilih
+              </span>
+              <Button
+                variant="destructive"
+                size="sm"
+                onClick={handleBulkDelete}
+              >
+                <Trash className="mr-1.5 size-4" />
+                Hapus Terpilih
+              </Button>
+            </div>
+          }
           emptyState={
             <p className="text-sm text-muted-foreground">
               {error ? "Belum ada data." : "Belum ada layanan."}
