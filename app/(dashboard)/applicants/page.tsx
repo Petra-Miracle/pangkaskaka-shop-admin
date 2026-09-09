@@ -146,8 +146,8 @@ function ApplicantsPageInner() {
 
       <div className="flex flex-wrap gap-3">
         <Dropdown>
-          <Button variant="outline" className="gap-2 border-primary/30 bg-primary/10 text-primary hover:bg-primary/20">
-            <Filter className="size-4" />
+          <Button variant="outline" className="gap-2 whitespace-nowrap border-primary/30 bg-primary/10 text-primary hover:bg-primary/20">
+            <Filter className="size-4 shrink-0" />
             {selectedShopLabel}
           </Button>
           <Dropdown.Popover placement="bottom start" className="min-w-[220px]">
@@ -171,8 +171,8 @@ function ApplicantsPageInner() {
         </Dropdown>
 
         <Dropdown>
-          <Button variant="outline" className="gap-2 border-primary/30 bg-primary/10 text-primary hover:bg-primary/20">
-            <Filter className="size-4" />
+          <Button variant="outline" className="gap-2 whitespace-nowrap border-primary/30 bg-primary/10 text-primary hover:bg-primary/20">
+            <Filter className="size-4 shrink-0" />
             {selectedStatusLabel}
           </Button>
           <Dropdown.Popover placement="bottom start" className="min-w-[256px]">
