@@ -1,8 +1,6 @@
 "use client";
 
-import { useState } from "react";
-import { useProducts } from "@/contexts/ProductsContext";
-import { useAuth } from "@/contexts/AuthContext";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { api, ApiError } from "@/lib/api";
 import { Product } from "@/lib/types";
 import { PageHeader } from "@/components/nav/page-header";
@@ -28,19 +26,65 @@ function formatRupiah(amount: number) {
 }
 
 export default function ProductsPage() {
-  const { user } = useAuth();
-  const { products, loading, error, refetch, removeLocal } = useProducts();
+  const [products, setProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | undefined>();
   const [filterCategory, setFilterCategory] = useState<string>("all");
   const [deleting, setDeleting] = useState<string | null>(null);
 
-  const categories = Array.from(
-    new Set(products.map((p) => p.category).filter(Boolean))
+  const fetchProducts = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await api.get<{ products: Product[] }>(
+        "/shop-admin/products"
+      );
+      setProducts(res.products || []);
+    } catch (err) {
+      if (err instanceof ApiError && err.status === 404) {
+        setError("Fitur katalog produk belum tersedia di server.");
+      } else {
+        setError(
+          err instanceof Error ? err.message : "Gagal memuat daftar produk."
+        );
+      }
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchProducts();
+  }, [fetchProducts]);
+
+  const addLocal = useCallback((product: Product) => {
+    setProducts((prev) => [product, ...prev]);
+  }, []);
+
+  const updateLocal = useCallback((id: string, patch: Partial<Product>) => {
+    setProducts((prev) =>
+      prev.map((p) => (p.id === id ? { ...p, ...patch } : p))
+    );
+  }, []);
+
+  const removeLocal = useCallback((id: string) => {
+    setProducts((prev) => prev.filter((p) => p.id !== id));
+  }, []);
+
+  const categories = useMemo(
+    () =>
+      Array.from(new Set(products.map((p) => p.category).filter(Boolean))),
+    [products]
   );
 
-  const filtered = products.filter(
-    (p) => filterCategory === "all" || p.category === filterCategory
+  const filtered = useMemo(
+    () =>
+      products.filter(
+        (p) => filterCategory === "all" || p.category === filterCategory
+      ),
+    [products, filterCategory]
   );
 
   const handleEdit = (product: Product) => {
@@ -83,12 +127,12 @@ export default function ProductsPage() {
       />
 
       {error && (
-        <div className="rounded-md bg-destructive/10 px-4 py-3 text-sm font-medium text-destructive">
+        <div className="rounded-md bg-muted px-4 py-3 text-sm font-medium text-muted-foreground">
           {error}
           <Button
             variant="link"
-            className="ml-2 h-auto p-0 text-destructive underline"
-            onClick={refetch}
+            className="ml-2 h-auto p-0 underline"
+            onClick={fetchProducts}
           >
             Coba lagi
           </Button>
@@ -131,11 +175,13 @@ export default function ProductsPage() {
         ) : filtered.length === 0 ? (
           <div className="p-12 text-center">
             <p className="font-semibold text-foreground">
-              Belum ada produk.
+              {error ? "Belum ada data." : "Belum ada produk."}
             </p>
-            <p className="mt-1 text-sm text-muted-foreground">
-              Klik &quot;Tambah Produk&quot; untuk mulai menambahkan produk ke katalog.
-            </p>
+            {!error && (
+              <p className="mt-1 text-sm text-muted-foreground">
+                Klik &quot;Tambah Produk&quot; untuk mulai menambahkan produk ke katalog.
+              </p>
+            )}
           </div>
         ) : (
           <Table>
@@ -218,6 +264,8 @@ export default function ProductsPage() {
           if (!open) setEditingProduct(undefined);
         }}
         product={editingProduct}
+        onCreated={addLocal}
+        onUpdated={updateLocal}
       />
     </div>
   );

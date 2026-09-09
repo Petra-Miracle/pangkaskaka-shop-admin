@@ -1,7 +1,6 @@
 "use client";
 
-import { useState } from "react";
-import { useServices } from "@/contexts/ServicesContext";
+import { useCallback, useEffect, useState } from "react";
 import { api, ApiError } from "@/lib/api";
 import { Service } from "@/lib/types";
 import { PageHeader } from "@/components/nav/page-header";
@@ -27,10 +26,51 @@ function formatRupiah(amount: number) {
 }
 
 export default function ServicesPage() {
-  const { services, loading, error, refetch, removeLocal } = useServices();
+  const [services, setServices] = useState<Service[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingService, setEditingService] = useState<Service | undefined>();
   const [deleting, setDeleting] = useState<string | null>(null);
+
+  const fetchServices = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await api.get<{ services: Service[] }>(
+        "/shop-admin/services"
+      );
+      setServices(res.services || []);
+    } catch (err) {
+      if (err instanceof ApiError && err.status === 404) {
+        setError("Fitur layanan belum tersedia di server.");
+      } else {
+        setError(
+          err instanceof Error ? err.message : "Gagal memuat daftar layanan."
+        );
+      }
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchServices();
+  }, [fetchServices]);
+
+  const addLocal = useCallback((service: Service) => {
+    setServices((prev) => [service, ...prev]);
+  }, []);
+
+  const updateLocal = useCallback((id: string, patch: Partial<Service>) => {
+    setServices((prev) =>
+      prev.map((s) => (s.id === id ? { ...s, ...patch } : s))
+    );
+  }, []);
+
+  const removeLocal = useCallback((id: string) => {
+    setServices((prev) => prev.filter((s) => s.id !== id));
+  }, []);
 
   const handleEdit = (svc: Service) => {
     setEditingService(svc);
@@ -72,12 +112,12 @@ export default function ServicesPage() {
       />
 
       {error && (
-        <div className="rounded-md bg-destructive/10 px-4 py-3 text-sm font-medium text-destructive">
+        <div className="rounded-md bg-muted px-4 py-3 text-sm font-medium text-muted-foreground">
           {error}
           <Button
             variant="link"
-            className="ml-2 h-auto p-0 text-destructive underline"
-            onClick={refetch}
+            className="ml-2 h-auto p-0 underline"
+            onClick={fetchServices}
           >
             Coba lagi
           </Button>
@@ -92,11 +132,13 @@ export default function ServicesPage() {
         ) : services.length === 0 ? (
           <div className="p-12 text-center">
             <p className="font-semibold text-foreground">
-              Belum ada layanan.
+              {error ? "Belum ada data." : "Belum ada layanan."}
             </p>
-            <p className="mt-1 text-sm text-muted-foreground">
-              Klik &quot;Tambah Layanan&quot; untuk mulai menambahkan layanan.
-            </p>
+            {!error && (
+              <p className="mt-1 text-sm text-muted-foreground">
+                Klik &quot;Tambah Layanan&quot; untuk mulai menambahkan layanan.
+              </p>
+            )}
           </div>
         ) : (
           <Table>
@@ -167,6 +209,8 @@ export default function ServicesPage() {
           if (!open) setEditingService(undefined);
         }}
         service={editingService}
+        onCreated={addLocal}
+        onUpdated={updateLocal}
       />
     </div>
   );

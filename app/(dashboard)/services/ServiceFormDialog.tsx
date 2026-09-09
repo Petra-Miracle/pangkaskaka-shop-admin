@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
-import { useServices } from "@/contexts/ServicesContext";
 import { api, ApiError } from "@/lib/api";
 import { Service, ServiceFormData } from "@/lib/types";
 import { Button } from "@/components/ui/button";
@@ -20,15 +19,18 @@ interface ServiceFormDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   service?: Service;
+  onCreated?: (service: Service) => void;
+  onUpdated?: (id: string, patch: Partial<Service>) => void;
 }
 
 export function ServiceFormDialog({
   open,
   onOpenChange,
   service,
+  onCreated,
+  onUpdated,
 }: ServiceFormDialogProps) {
   const { user, shopsById } = useAuth();
-  const { addLocal, updateLocal } = useServices();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [form, setForm] = useState<ServiceFormData>({
@@ -54,13 +56,13 @@ export function ServiceFormDialog({
           `/shop-admin/services/${service.id}`,
           { ...form, shop_id: selectedShopId }
         );
-        updateLocal(service.id, updated);
+        onUpdated?.(service.id, updated);
       } else {
         const created = await api.post<Service>("/shop-admin/services", {
           ...form,
           shop_id: selectedShopId,
         });
-        addLocal(created);
+        onCreated?.(created);
       }
       onOpenChange(false);
       setForm({
@@ -72,7 +74,7 @@ export function ServiceFormDialog({
       });
     } catch (err) {
       if (err instanceof ApiError && err.status === 404) {
-        setError("Fitur layanan belum tersedia di server. Silakan hubungi admin server.");
+        setError("Fitur layanan belum tersedia di server.");
       } else {
         setError(
           err instanceof ApiError
@@ -95,7 +97,7 @@ export function ServiceFormDialog({
         </DialogHeader>
 
         {error && (
-          <div className="rounded-md bg-destructive/10 px-3 py-2 text-sm text-destructive">
+          <div className="rounded-md bg-muted px-3 py-2 text-sm text-muted-foreground">
             {error}
           </div>
         )}

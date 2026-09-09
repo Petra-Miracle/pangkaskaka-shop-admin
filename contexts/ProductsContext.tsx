@@ -37,7 +37,7 @@ export function ProductsProvider({ children }: { children: React.ReactNode }) {
       setProducts(res.products || []);
     } catch (err) {
       if (err instanceof ApiError && err.status === 404) {
-        setError("Fitur katalog produk belum tersedia di server.");
+        setError(" Fitur katalog produk belum tersedia di server.");
       } else {
         setError(
           err instanceof Error ? err.message : "Gagal memuat daftar produk."

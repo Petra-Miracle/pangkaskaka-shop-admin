@@ -1,10 +1,9 @@
 "use client";
 
-import { useState } from "react";
-import { useAuth } from "@/contexts/AuthContext";
-import { useProducts } from "@/contexts/ProductsContext";
+import { useCallback, useEffect, useState } from "react";
 import { api, ApiError } from "@/lib/api";
 import { Product, ProductFormData } from "@/lib/types";
+import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -20,6 +19,8 @@ interface ProductFormDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   product?: Product;
+  onCreated?: (product: Product) => void;
+  onUpdated?: (id: string, patch: Partial<Product>) => void;
 }
 
 const CATEGORIES = [
@@ -34,9 +35,10 @@ export function ProductFormDialog({
   open,
   onOpenChange,
   product,
+  onCreated,
+  onUpdated,
 }: ProductFormDialogProps) {
   const { user, shopsById } = useAuth();
-  const { addLocal, updateLocal } = useProducts();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [form, setForm] = useState<ProductFormData>({
@@ -64,13 +66,13 @@ export function ProductFormDialog({
           `/shop-admin/products/${product.id}`,
           { ...form, shop_id: selectedShopId }
         );
-        updateLocal(product.id, updated);
+        onUpdated?.(product.id, updated);
       } else {
         const created = await api.post<Product>("/shop-admin/products", {
           ...form,
           shop_id: selectedShopId,
         });
-        addLocal(created);
+        onCreated?.(created);
       }
       onOpenChange(false);
       setForm({
@@ -84,7 +86,7 @@ export function ProductFormDialog({
       });
     } catch (err) {
       if (err instanceof ApiError && err.status === 404) {
-        setError("Fitur produk belum tersedia di server. Silakan hubungi admin server.");
+        setError("Fitur produk belum tersedia di server.");
       } else {
         setError(
           err instanceof ApiError
@@ -107,7 +109,7 @@ export function ProductFormDialog({
         </DialogHeader>
 
         {error && (
-          <div className="rounded-md bg-destructive/10 px-3 py-2 text-sm text-destructive">
+          <div className="rounded-md bg-muted px-3 py-2 text-sm text-muted-foreground">
             {error}
           </div>
         )}

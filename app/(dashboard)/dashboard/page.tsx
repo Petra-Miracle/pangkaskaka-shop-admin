@@ -1,12 +1,12 @@
 "use client";
 
+import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { useAuth } from "@/contexts/AuthContext";
 import { useApplicants } from "@/contexts/ApplicantsContext";
-import { useProducts } from "@/contexts/ProductsContext";
-import { useServices } from "@/contexts/ServicesContext";
+import { api, ApiError } from "@/lib/api";
+import { ApplicantStatus, Product, Service } from "@/lib/types";
 import { PageHeader } from "@/components/nav/page-header";
-import { ApplicantStatus } from "@/lib/types";
 import { Package, Scissors, TrendingUp } from "lucide-react";
 
 const SUMMARY_STATUSES: { status: ApplicantStatus[]; label: string; color: string }[] = [
@@ -23,10 +23,29 @@ const SUMMARY_STATUSES: { status: ApplicantStatus[]; label: string; color: strin
 export default function DashboardPage() {
   const { user, shopsById } = useAuth();
   const { applicants, loading, error } = useApplicants();
-  const { products } = useProducts();
-  const { services } = useServices();
+  const [productCount, setProductCount] = useState(0);
+  const [serviceCount, setServiceCount] = useState(0);
 
   const managedShopIds = user?.managed_shop_ids || [];
+
+  const fetchCounts = useCallback(async () => {
+    try {
+      const [prodRes, svcRes] = await Promise.allSettled([
+        api.get<{ products: Product[] }>("/shop-admin/products"),
+        api.get<{ services: Service[] }>("/shop-admin/services"),
+      ]);
+      if (prodRes.status === "fulfilled")
+        setProductCount((prodRes.value.products || []).length);
+      if (svcRes.status === "fulfilled")
+        setServiceCount((svcRes.value.services || []).length);
+    } catch {
+      // silently ignore — endpoints may not exist yet
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchCounts();
+  }, [fetchCounts]);
 
   return (
     <div className="space-y-6">
@@ -68,7 +87,7 @@ export default function DashboardPage() {
             </div>
             <div>
               <p className="text-2xl font-extrabold text-primary">
-                {products.length}
+                {productCount}
               </p>
               <p className="text-sm font-medium text-muted-foreground">Produk</p>
             </div>
@@ -81,7 +100,7 @@ export default function DashboardPage() {
             </div>
             <div>
               <p className="text-2xl font-extrabold text-info">
-                {services.length}
+                {serviceCount}
               </p>
               <p className="text-sm font-medium text-muted-foreground">Layanan</p>
             </div>
