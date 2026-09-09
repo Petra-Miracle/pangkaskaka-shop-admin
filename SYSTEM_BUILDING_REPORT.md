@@ -16,6 +16,7 @@
 | **Excel Export** | xlsx v0.20.3 |
 | **Deployment** | Vercel (Production) |
 | **Backend Deploy** | Railway |
+| **Report Date** | September 10, 2026 |
 
 ---
 
@@ -29,13 +30,14 @@
 - **shadcn/ui** — Button, Input, Badge, Dialog, Table, Card
 - **@tanstack/react-table v9** — DataTable with sorting, pagination
 - **Recharts** — Revenue charts
-- **xlsx** — Excel export
+- **xlsx v0.20.3** — Excel export
 - **Lucide React** — Icons
 
 ### Backend
 - **FastAPI** — Python web framework
 - **Motor** — Async MongoDB driver
 - **MongoDB** — Database
+- **Cloudflare R2** — File/image storage
 
 ---
 
@@ -63,9 +65,9 @@ When feature flag is `true`, data comes from backend API. When `false` or API re
 | `/dashboard` | DashboardPage | Summary cards, quick links |
 | `/applicants` | ApplicantsPage | StreetBarber applicant management |
 | `/applicants/[kid]` | ApplicantDetailPage | Detail & evaluation |
-| `/barbers` | BarbersPage | Karyawan/Barber management |
-| `/products` | ProductsPage | Product catalog CRUD |
-| `/services` | ServicesPage | Service management CRUD |
+| `/barbers` | BarbersPage | Karyawan/Barber CRUD + batch delete |
+| `/products` | ProductsPage | Product catalog CRUD + batch delete |
+| `/services` | ServicesPage | Service management CRUD + batch delete |
 | `/revenue` | RevenuePage | Revenue (read-only) + Excel export |
 | `/profile` | ProfilePage | User info & shop list |
 
@@ -106,24 +108,24 @@ Akun
 | Method | Endpoint | Description |
 |--------|----------|-------------|
 | GET | `/shop-admin/products` | List products |
-| POST | `/shop-admin/products` | Create product |
-| PUT | `/shop-admin/products/{id}` | Update product |
+| POST | `/shop-admin/products` | Create product (returns `{product: ...}`) |
+| PUT | `/shop-admin/products/{id}` | Update product (returns `{ok: true}`) |
 | DELETE | `/shop-admin/products/{id}` | Delete product |
 
 ### Services
 | Method | Endpoint | Description |
 |--------|----------|-------------|
 | GET | `/shop-admin/services` | List services |
-| POST | `/shop-admin/services` | Create service |
-| PUT | `/shop-admin/services/{id}` | Update service |
+| POST | `/shop-admin/services` | Create service (returns `{service: ...}`) |
+| PUT | `/shop-admin/services/{id}` | Update service (returns `{ok: true}`) |
 | DELETE | `/shop-admin/services/{id}` | Delete service |
 
 ### Barbers
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| GET | `/shop-admin/barbers` | List barbers |
-| POST | `/shop-admin/barbers` | Create barber |
-| PUT | `/shop-admin/barbers/{id}` | Update barber |
+| GET | `/shop-admin/barbers` | List barbers (maps `status` → `is_active`) |
+| POST | `/shop-admin/barbers` | Create barber (stores `status: "active"/"inactive"`) |
+| PUT | `/shop-admin/barbers/{id}` | Update barber (returns `{ok: true}`) |
 | DELETE | `/shop-admin/barbers/{id}` | Delete barber |
 
 ### Revenue
@@ -162,7 +164,7 @@ app/layout.tsx (RootLayout)
 | Badge | `components/ui/badge.tsx` | Status badges |
 | Dialog | `components/ui/dialog.tsx` | Modal dialogs |
 | Table | `components/ui/table.tsx` | Base table (uppercase header) |
-| DataTable | `components/ui/data-table.tsx` | Generic table with sorting, pagination |
+| DataTable | `components/ui/data-table.tsx` | Generic table with sorting, pagination, batch delete |
 | Card | `components/ui/card.tsx` | Simple card wrapper |
 
 ### Shared Components
@@ -195,8 +197,19 @@ Feature Flag = true?
 ### Form Pattern
 ```
 useEffect([open, entity]) → Reset form fields on dialog open
-handleSubmit → Try API → On 404 → Fallback to localStorage
+handleSubmit → Set submitting → Try API → On 404 → Fallback to localStorage
 onCreated/onUpdated → Update parent state → Close dialog
+finally → Set submitting false
+```
+
+### API Response Extraction
+```
+POST /shop-admin/products  → {product: ...}  → extract .product
+POST /shop-admin/services  → {service: ...}  → extract .service
+POST /shop-admin/barbers   → {barber: ...}   → extract .barber
+PUT  /shop-admin/products/{id} → {ok: true}  → pass payload to onUpdated
+PUT  /shop-admin/services/{id} → {ok: true}  → pass payload to onUpdated
+PUT  /shop-admin/barbers/{id}  → {ok: true}  → pass payload to onUpdated
 ```
 
 ---
@@ -216,16 +229,16 @@ pangkaskaka-shop-admin/
 │       │   ├── page.tsx              # Applicants list
 │       │   └── [kid]/page.tsx        # Applicant detail
 │       ├── barbers/
-│       │   ├── page.tsx              # Barbers list
+│       │   ├── page.tsx              # Barbers list + batch delete
 │       │   └── BarberFormDialog.tsx  # Add/edit barber
 │       ├── products/
-│       │   ├── page.tsx              # Products list
+│       │   ├── page.tsx              # Products list + batch delete
 │       │   └── ProductFormDialog.tsx # Add/edit product
 │       ├── services/
-│       │   ├── page.tsx              # Services list
+│       │   ├── page.tsx              # Services list + batch delete
 │       │   └── ServiceFormDialog.tsx # Add/edit service
 │       ├── revenue/
-│       │   ├── page.tsx              # Revenue + export
+│       │   ├── page.tsx              # Revenue + Excel export
 │       │   ├── RevenueTable.tsx      # Transaction table
 │       │   └── RevenueSummaryCards.tsx # Summary cards
 │       └── profile/page.tsx          # Profile
@@ -237,11 +250,11 @@ pangkaskaka-shop-admin/
 │   ├── AuthContext.tsx
 │   └── ApplicantsContext.tsx
 ├── lib/
-│   ├── api.ts                        # API wrapper
+│   ├── api.ts                        # API wrapper with auth
 │   ├── auth.ts                       # Token management
 │   ├── features.ts                   # Feature flags
 │   ├── nav-items.ts                  # Navigation config
-│   ├── storage.ts                    # localStorage CRUD
+│   ├── storage.ts                    # localStorage CRUD (products, services, barbers)
 │   ├── types.ts                      # TypeScript types
 │   └── utils.ts                      # cn, formatRupiah, formatRelativeTime
 ├── public/
@@ -254,7 +267,82 @@ pangkaskaka-shop-admin/
 
 ---
 
-## 10. Deployment
+## 10. Key Features Implemented
+
+### 10.1 DataTable with Pagination
+- Controlled pagination state via `useState`
+- Memoized table options to prevent reset on re-render
+- Page size selector: 10 / 25 / 50
+- Sorting on all columns (uncontrolled)
+- Skeleton loading state
+
+### 10.2 Batch Delete
+- Checkbox selection per row
+- "Select All" checkbox in header
+- "Hapus Terpilih" button with confirmation dialog
+- Uses `Promise.allSettled` for partial failure tolerance
+- Only removes successfully deleted items from UI
+
+### 10.3 Form Dialogs (Product, Service, Barber)
+- `useEffect` resets form on dialog open
+- No loading states (instant save)
+- `submitting` state prevents double-click duplicates
+- Disable submit button while submitting
+- localStorage fallback on API 404
+
+### 10.4 Revenue Page
+- Filter by date range (start/end)
+- Filter by type (All/Income/Expense)
+- Summary cards: Total Pendapatan, Total Pengeluaran, Laba Bersih
+- Transaction table with all details
+- Export Excel with SUMIF formulas
+
+### 10.5 Excel Export Structure
+```
+LAPORAN KEUANGAN TOKO
+─────────────────────────────────────
+Toko      : PangkasKAKA
+Periode   : 1 Sep 2026 — 9 Sep 2026
+Filter    : Semua
+
+RINGKASAN KEUANGAN
+─────────────────────────────────────
+Keterangan                        | Jumlah
+Total Pendapatan (Pemasukan)      | =SUMIF(range,"Pendapatan",amount_range)
+Total Pengeluaran (Pengeluaran)   | =ABS(SUMIF(range,"Pengeluaran",amount_range))
+Laba Bersih                       | =B10-B11
+
+DATA TRANSAKSI
+─────────────────────────────────────
+Tanggal | Deskripsi | Kategori | Tipe | Jumlah (Rp) | Dicatat Oleh
+```
+
+---
+
+## 11. Bug Fixes Applied
+
+### Critical Fixes
+| Bug | Fix |
+|-----|-----|
+| Revenue page permanent loading | Added `useEffect` to initialize `selectedShopId` when shops load |
+| Form double-click creates duplicates | Added `submitting` state + disable button while processing |
+
+### Medium Fixes
+| Bug | Fix |
+|-----|-----|
+| DataTable sorting locked to initial state | Made sorting uncontrolled (removed `state.sorting`) |
+| Batch delete leaves UI inconsistent on partial failure | Changed `Promise.all` → `Promise.allSettled` |
+| Barbers not appearing in customer app | Backend stores `status: "active"` instead of `is_active: true` |
+
+### Backend Fixes
+| Bug | Fix |
+|-----|-----|
+| Admin barbers endpoint stores `is_active` | Changed to store `status: "active"/"inactive"` + `photo` + `skill_level` |
+| GET barbers response missing `is_active` | Added mapping: `is_active = status == "active"` |
+
+---
+
+## 12. Deployment
 
 ### Frontend (Vercel)
 ```bash
@@ -269,7 +357,7 @@ npx vercel --prod --force
 
 ---
 
-## 11. Development Notes
+## 13. Development Notes
 
 ### Windows + Vercel
 - `core.ignorecase = true` on Windows
@@ -292,43 +380,39 @@ npx vercel --prod --force
 
 ---
 
-## 12. Current Status
+## 14. Current Status
 
-| Feature | Status | API Required |
-|---------|--------|--------------|
-| Login | ✅ Working | Yes |
-| Dashboard | ✅ Working | Yes |
-| Applicants | ✅ Working | Yes |
-| Barbers | ✅ Working | No (localStorage fallback) |
-| Products | ✅ Working | No (localStorage fallback) |
-| Services | ✅ Working | No (localStorage fallback) |
-| Revenue | ✅ Working | Yes |
-| Revenue Export | ✅ Working | No |
-| Profile | ✅ Working | Yes |
-
----
-
-## 13. Known Limitations
-
-1. **Barbers API** — Backend endpoint `/shop-admin/barbers` may not exist yet; currently uses localStorage fallback
-2. **No real-time updates** — Data refreshes on page load
-3. **No image upload** — Products use URL input, not file upload
-4. **Revenue read-only** — Admin cannot create/edit transactions
+| Feature | Status | API | Notes |
+|---------|--------|-----|-------|
+| Login | ✅ Working | Yes | Email + password |
+| Dashboard | ✅ Working | Yes | Summary cards |
+| Applicants | ✅ Working | Yes | List + detail + evaluation |
+| Barbers | ✅ Working | Yes | CRUD + batch delete + customer app compatible |
+| Products | ✅ Working | Yes | CRUD + batch delete |
+| Services | ✅ Working | Yes | CRUD + batch delete |
+| Revenue | ✅ Working | Yes | Read-only + SUMIF Excel export |
+| Profile | ✅ Working | Yes | User info |
 
 ---
 
-## 14. Future Improvements
+## 15. Git History (Recent)
 
-- [ ] Add backend endpoints for barbers
-- [ ] Real-time updates via WebSocket
-- [ ] Image upload for products and barbers
-- [ ] Dark mode toggle
-- [ ] Push notifications
-- [ ] Mobile responsive improvements
-- [ ] Export to PDF
-- [ ] Multi-language support
+```
+843fa1b Revert "feat: add Total Transaksi with COUNTA formula to Excel export"
+88d9abb feat: Excel export with SUMIF formulas for accurate calculations
+94451c0 feat: structured Excel export with summary section
+432abc9 chore: add WhatsApp images to gitignore
+c6d34e0 fix: critical dashboard issues - revenue loading, double-submit, sorting, bulk delete
+928f042 fix: extract API response correctly for products and services
+3e4d1a1 fix: pagination state management in DataTable
+6ca4afa feat: add batch delete to products, barbers, services
+9aff22c fix: handle backend response format for barbers
+8b255e2 feat: add barbers CRUD page with batch delete
+c1d38e7 feat: add barbers page and backend endpoints
+```
 
 ---
 
-*Report generated on: September 9, 2026*
-*Last deployment: Production (Vercel)*
+*Report generated on: September 10, 2026*
+*Last deployment: Production (Vercel + Railway)*
+*Status: All features working, no critical issues*
