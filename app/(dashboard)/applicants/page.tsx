@@ -104,17 +104,17 @@ function ApplicantsPageInner() {
         <div className="space-y-3">
           {filtered.map((a) => (
             <Link key={a.id} href={`/applicants/${a.id}`}>
-              <div className="glass-card glass-card-hover rounded-2xl flex items-center justify-between gap-4 p-5">
-                <div className="min-w-0 space-y-1">
-                  <p className="truncate text-base font-bold text-foreground">
+              <div className="glass-card glass-card-hover rounded-2xl flex items-center justify-between gap-4 px-5 py-4">
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-[15px] font-bold leading-snug text-foreground">
                     {a.name}
                   </p>
-                  <p className="truncate text-sm text-muted-foreground">
+                  <p className="mt-1 truncate text-sm text-muted-foreground">
                     {shopsById[a.shop_id]?.name || a.shop_id}
                     <span className="mx-1.5 opacity-40">&middot;</span>
-                    {a.email}
+                    <span className="lowercase">{a.email}</span>
                   </p>
-                  <p className="text-xs text-muted-foreground/70">
+                  <p className="mt-0.5 text-xs text-muted-foreground/60">
                     Diajukan{" "}
                     {new Date(a.created_at).toLocaleDateString("id-ID", {
                       day: "numeric",
@@ -123,11 +123,11 @@ function ApplicantsPageInner() {
                     })}
                   </p>
                 </div>
-                <div className="flex shrink-0 flex-col items-end gap-2">
+                <div className="flex shrink-0 items-center gap-3">
                   <StatusBadge status={a.status} />
                   {a.evaluated_at && (
-                    <span className="text-xs font-semibold text-muted-foreground">
-                      Skor: {a.total_score}
+                    <span className="whitespace-nowrap text-sm font-semibold tabular-nums text-muted-foreground">
+                      {a.total_score}
                     </span>
                   )}
                 </div>
