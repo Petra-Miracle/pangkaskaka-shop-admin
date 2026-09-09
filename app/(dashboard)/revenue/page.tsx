@@ -82,14 +82,6 @@ export default function RevenuePage() {
   const handleExport = () => {
     if (transactions.length === 0) return;
 
-    const totalIncome = transactions
-      .filter((tx) => tx.type === "income")
-      .reduce((sum, tx) => sum + tx.amount, 0);
-    const totalExpense = transactions
-      .filter((tx) => tx.type === "expense")
-      .reduce((sum, tx) => sum + tx.amount, 0);
-    const netProfit = totalIncome - totalExpense;
-
     const dateLabel =
       startDate && endDate
         ? `${new Date(startDate).toLocaleDateString("id-ID")} — ${new Date(endDate).toLocaleDateString("id-ID")}`
@@ -108,21 +100,27 @@ export default function RevenuePage() {
 
     const shopName = shopsById[selectedShopId]?.name || selectedShopId;
 
-    const rows: (string | number)[][] = [
-      ["LAPORAN KEUANGAN"],
+    const txStartRow = 16;
+    const txEndRow = txStartRow + transactions.length - 1;
+
+    const rows: (string | number | { f: string })[][] = [
+      ["LAPORAN KEUANGAN TOKO"],
       [""],
       ["Toko", shopName],
       ["Periode", dateLabel],
-      ["Filter Tipe", filterLabel],
-      ["Total Transaksi", transactions.length],
+      ["Filter", filterLabel],
       [""],
-      ["RINGKASAN"],
-      ["Total Pendapatan", totalIncome],
-      ["Total Pengeluaran", totalExpense],
-      ["Laba Bersih", netProfit],
+      [""],
+      ["RINGKASAN KEUANGAN"],
+      [""],
+      ["Keterangan", "Jumlah"],
+      ["Total Pendapatan (Pemasukan)", { f: `SUMIF(E${txStartRow}:E${txEndRow},"Pendapatan",F${txStartRow}:F${txEndRow})` }],
+      ["Total Pengeluaran (Pengeluaran)", { f: `ABS(SUMIF(E${txStartRow}:E${txEndRow},"Pengeluaran",F${txStartRow}:F${txEndRow}))` }],
+      ["Laba Bersih", { f: `B10-B11` }],
+      [""],
       [""],
       ["DATA TRANSAKSI"],
-      ["Tanggal", "Deskripsi", "Kategori", "Tipe", "Jumlah", "Dicatat Oleh"],
+      ["Tanggal", "Deskripsi", "Kategori", "Tipe", "Jumlah (Rp)", "Dicatat Oleh"],
     ];
 
     for (const tx of transactions) {
@@ -139,7 +137,7 @@ export default function RevenuePage() {
     const ws = XLSX.utils.aoa_to_sheet(rows);
 
     ws["!cols"] = [
-      { wch: 15 },
+      { wch: 35 },
       { wch: 30 },
       { wch: 15 },
       { wch: 14 },
@@ -149,6 +147,8 @@ export default function RevenuePage() {
 
     ws["!merges"] = [
       { s: { r: 0, c: 0 }, e: { r: 0, c: 5 } },
+      { s: { r: 7, c: 0 }, e: { r: 7, c: 1 } },
+      { s: { r: 15, c: 0 }, e: { r: 15, c: 5 } },
     ];
 
     const wb = XLSX.utils.book_new();
