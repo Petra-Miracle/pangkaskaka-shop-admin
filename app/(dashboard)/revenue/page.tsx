@@ -82,30 +82,79 @@ export default function RevenuePage() {
   const handleExport = () => {
     if (transactions.length === 0) return;
 
-    const data = transactions.map((tx) => ({
-      Tanggal: new Date(tx.created_at).toLocaleDateString("id-ID"),
-      Deskripsi: tx.description,
-      Kategori: tx.category || "-",
-      Tipe: tx.type === "income" ? "Pendapatan" : "Pengeluaran",
-      Jumlah: tx.type === "income" ? tx.amount : -tx.amount,
-      "Dicatat Oleh": tx.recorded_by_role,
-    }));
+    const totalIncome = transactions
+      .filter((tx) => tx.type === "income")
+      .reduce((sum, tx) => sum + tx.amount, 0);
+    const totalExpense = transactions
+      .filter((tx) => tx.type === "expense")
+      .reduce((sum, tx) => sum + tx.amount, 0);
+    const netProfit = totalIncome - totalExpense;
 
-    const ws = XLSX.utils.json_to_sheet(data);
+    const dateLabel =
+      startDate && endDate
+        ? `${new Date(startDate).toLocaleDateString("id-ID")} — ${new Date(endDate).toLocaleDateString("id-ID")}`
+        : startDate
+          ? `${new Date(startDate).toLocaleDateString("id-ID")} — Sekarang`
+          : endDate
+            ? `Semua — ${new Date(endDate).toLocaleDateString("id-ID")}`
+            : "Semua Periode";
+
+    const filterLabel =
+      filterType === "income"
+        ? "Pendapatan"
+        : filterType === "expense"
+          ? "Pengeluaran"
+          : "Semua";
+
+    const shopName = shopsById[selectedShopId]?.name || selectedShopId;
+
+    const rows: (string | number)[][] = [
+      ["LAPORAN KEUANGAN"],
+      [""],
+      ["Toko", shopName],
+      ["Periode", dateLabel],
+      ["Filter Tipe", filterLabel],
+      ["Total Transaksi", transactions.length],
+      [""],
+      ["RINGKASAN"],
+      ["Total Pendapatan", totalIncome],
+      ["Total Pengeluaran", totalExpense],
+      ["Laba Bersih", netProfit],
+      [""],
+      ["DATA TRANSAKSI"],
+      ["Tanggal", "Deskripsi", "Kategori", "Tipe", "Jumlah", "Dicatat Oleh"],
+    ];
+
+    for (const tx of transactions) {
+      rows.push([
+        new Date(tx.created_at).toLocaleDateString("id-ID"),
+        tx.description,
+        tx.category || "-",
+        tx.type === "income" ? "Pendapatan" : "Pengeluaran",
+        tx.type === "income" ? tx.amount : -tx.amount,
+        tx.recorded_by_role,
+      ]);
+    }
+
+    const ws = XLSX.utils.aoa_to_sheet(rows);
+
+    ws["!cols"] = [
+      { wch: 15 },
+      { wch: 30 },
+      { wch: 15 },
+      { wch: 14 },
+      { wch: 18 },
+      { wch: 15 },
+    ];
+
+    ws["!merges"] = [
+      { s: { r: 0, c: 0 }, e: { r: 0, c: 5 } },
+    ];
+
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "Revenue");
 
-    const colWidths = [
-      { wch: 12 },
-      { wch: 30 },
-      { wch: 15 },
-      { wch: 12 },
-      { wch: 15 },
-      { wch: 15 },
-    ];
-    ws["!cols"] = colWidths;
-
-    const fileName = `Revenue_${selectedShopId}_${startDate || "all"}_${endDate || "all"}.xlsx`;
+    const fileName = `Revenue_${shopName}_${startDate || "all"}_${endDate || "all"}.xlsx`;
     XLSX.writeFile(wb, fileName);
   };
 
