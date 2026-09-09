@@ -112,10 +112,19 @@ export function ProductFormDialog({
       };
 
       if (!FEATURES.products) {
-        alert(
-          "Fitur belum aktif (backend belum siap). Data tidak dikirim ke server.\n\n" +
-            JSON.stringify(payload, null, 2)
-        );
+        const summary = [
+          "📦 Data Produk (mode testing):",
+          "",
+          `Nama: ${name}`,
+          `Harga: Rp ${priceFormatted}`,
+          `Stok: ${stock}`,
+          `Kategori: ${category || "-"}`,
+          `Aktif: ${isActive ? "Ya" : "Tidak"}`,
+          `Gambar: ${imagePreview ? "✅ ada" : "❌ tidak ada"}`,
+          "",
+          "Fitur belum aktif (backend belum siap).",
+        ].join("\n");
+        alert(summary);
         setLoading(false);
         return;
       }
