@@ -156,30 +156,30 @@ export default function ServicesPage() {
           <Table>
             <TableHeader>
               <TableRow className="border-b">
-                <TableHead className="py-3">Nama</TableHead>
-                <TableHead className="py-3">Deskripsi</TableHead>
-                <TableHead className="py-3 text-right">Harga</TableHead>
-                <TableHead className="py-3 text-right">Durasi</TableHead>
-                <TableHead className="py-3">Status</TableHead>
-                <TableHead className="py-3 text-right">Aksi</TableHead>
+                <TableHead className="py-4">Nama</TableHead>
+                <TableHead className="py-4">Deskripsi</TableHead>
+                <TableHead className="py-4 text-right">Harga</TableHead>
+                <TableHead className="py-4 text-right">Durasi</TableHead>
+                <TableHead className="py-4">Status</TableHead>
+                <TableHead className="py-4 text-right">Aksi</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {services.map((svc) => (
-                <TableRow key={svc.id} className="border-b last:border-b-0">
-                  <TableCell className="py-4 font-medium">{svc.name}</TableCell>
-                  <TableCell className="py-4 max-w-[200px] truncate text-muted-foreground">
+                <TableRow key={svc.id} className="border-b last:border-b-0 hover:bg-muted/30">
+                  <TableCell className="py-5 font-medium">{svc.name}</TableCell>
+                  <TableCell className="py-5 max-w-[200px] truncate text-muted-foreground">
                     {svc.description || "-"}
                   </TableCell>
-                  <TableCell className="py-4 text-right">
+                  <TableCell className="py-5 text-right">
                     {formatRupiah(svc.price)}
                   </TableCell>
-                  <TableCell className="py-4 text-right">
+                  <TableCell className="py-5 text-right">
                     {svc.duration_minutes
                       ? `${svc.duration_minutes} menit`
                       : "-"}
                   </TableCell>
-                  <TableCell className="py-4">
+                  <TableCell className="py-5">
                     {svc.is_active ? (
                       <Badge className="bg-success/15 text-success">
                         Aktif
@@ -188,7 +188,7 @@ export default function ServicesPage() {
                       <Badge variant="secondary">Nonaktif</Badge>
                     )}
                   </TableCell>
-                  <TableCell className="py-4 text-right">
+                  <TableCell className="py-5 text-right">
                     <div className="flex justify-end gap-1">
                       <Button
                         variant="ghost"
