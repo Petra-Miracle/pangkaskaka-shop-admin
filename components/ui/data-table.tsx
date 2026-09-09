@@ -55,6 +55,7 @@ export function DataTable<TData>({
   selectionBar,
 }: DataTableProps<TData>) {
   const [internalSelection, setInternalSelection] = React.useState<Record<string, boolean>>({});
+  const [pagination, setPagination] = React.useState({ pageIndex: 0, pageSize });
 
   const selection = selectedIds ?? new Set(Object.keys(internalSelection).filter((k) => internalSelection[k]));
   const setSelection = onSelectionChange
@@ -89,14 +90,22 @@ export function DataTable<TData>({
   const someSelected = allPageIds.some((id) => selection.has(id)) && !allSelected;
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const table = (useLegacyTable as unknown as (o: object) => LegacyReactTable<any>)({
-    data,
-    columns,
-    getSortedRowModel: getSortedRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
-    initialState: { sorting: initialSorting, pagination: { pageIndex: 0, pageSize } },
-    autoResetPageIndex: false,
-  });
+  const tableOptions = React.useMemo(
+    () => ({
+      data,
+      columns,
+      getSortedRowModel: getSortedRowModel(),
+      getPaginationRowModel: getPaginationRowModel(),
+      state: { sorting: initialSorting, pagination },
+      onPaginationChange: setPagination,
+      autoResetPageIndex: false,
+    }),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [data, columns, initialSorting, pagination.pageIndex, pagination.pageSize]
+  );
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const table = (useLegacyTable as unknown as (o: object) => LegacyReactTable<any>)(tableOptions);
 
   const { pageIndex, pageSize: currentPageSize } = table.getState().pagination;
   const rows = table.getRowModel().rows;
