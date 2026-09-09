@@ -84,17 +84,17 @@ export function BarberFormDialog({
       }
 
       if (barber) {
-        const updated = await api.put<Barber>(
+        const res = await api.put<{ ok: boolean }>(
           `/shop-admin/barbers/${barber.id}`,
           payload
         );
-        onUpdated?.(barber.id, updated);
+        onUpdated?.(barber.id, payload);
       } else {
-        const created = await api.post<Barber>(
+        const res = await api.post<{ barber: Barber }>(
           "/shop-admin/barbers",
           payload
         );
-        onCreated?.(created);
+        onCreated?.(res.barber);
       }
       onOpenChange(false);
     } catch (err) {
