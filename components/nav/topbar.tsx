@@ -3,12 +3,8 @@
 import { usePathname } from "next/navigation";
 import Link from "next/link";
 import { ChevronRight, LayoutDashboard, LogOut } from "lucide-react";
-import { Avatar as HeroAvatar } from "@heroui/react";
+import { Avatar as HeroAvatar, Button, Dropdown, Label } from "@heroui/react";
 import { ThemeToggle } from "@/components/nav/theme-toggle";
-import {
-  DropdownMenu, DropdownMenuContent, DropdownMenuGroup, DropdownMenuItem,
-  DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { NAV_SECTIONS } from "@/lib/nav-items";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -49,31 +45,34 @@ export function Topbar() {
         <div className="flex items-center gap-1.5">
           <ThemeToggle />
           {user && (
-            <DropdownMenu>
-              <DropdownMenuTrigger
-                render={
-                  <button className="ml-1 flex items-center gap-2 rounded-full border border-sidebar-border/70 bg-background/60 py-0.5 pr-2 pl-0.5 transition-colors hover:border-primary/25" aria-label="Menu akun">
-                    <HeroAvatar.Root size="sm" variant="soft" color="accent" className="size-7 border border-primary/20">
-                      <HeroAvatar.Fallback className="text-[10px] font-bold">{initials}</HeroAvatar.Fallback>
-                    </HeroAvatar.Root>
-                    <span className="hidden max-w-32 truncate text-xs font-semibold lg:inline">{user.name}</span>
-                  </button>
-                }
-              />
-              <DropdownMenuContent side="bottom" align="end" className="w-56">
-                <DropdownMenuGroup>
-                  <DropdownMenuLabel className="px-2 py-1.5 font-normal">
-                    <p className="truncate text-sm font-semibold text-foreground">{user.name}</p>
-                    <p className="truncate text-xs text-muted-foreground">{user.email}</p>
-                  </DropdownMenuLabel>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem variant="destructive" onClick={logout}>
-                    <LogOut className="size-4" />
-                    Log out
-                  </DropdownMenuItem>
-                </DropdownMenuGroup>
-              </DropdownMenuContent>
-            </DropdownMenu>
+            <Dropdown>
+              <Button
+                aria-label="Menu akun"
+                variant="secondary"
+                className="ml-1 flex items-center gap-2 rounded-full border border-sidebar-border/70 bg-background/60 py-0.5 pr-2 pl-0.5 font-normal transition-colors hover:border-primary/25"
+              >
+                <HeroAvatar.Root size="sm" variant="soft" color="accent" className="size-7 border border-primary/20">
+                  <HeroAvatar.Fallback className="text-[10px] font-bold">{initials}</HeroAvatar.Fallback>
+                </HeroAvatar.Root>
+                <span className="hidden max-w-32 truncate text-xs font-semibold lg:inline">{user.name}</span>
+              </Button>
+              <Dropdown.Popover placement="bottom end">
+                <Dropdown.Menu onAction={(key) => { if (key === "logout") logout(); }}>
+                  <Dropdown.Item id="user-info" textValue={user.name} isDisabled>
+                    <Label className="opacity-100">
+                      <p className="truncate text-sm font-semibold text-foreground">{user.name}</p>
+                      <p className="truncate text-xs text-muted-foreground">{user.email}</p>
+                    </Label>
+                  </Dropdown.Item>
+                  <Dropdown.Item id="logout" textValue="Log out" variant="danger">
+                    <Label className="flex items-center gap-2 opacity-100">
+                      <LogOut className="size-4" />
+                      Log out
+                    </Label>
+                  </Dropdown.Item>
+                </Dropdown.Menu>
+              </Dropdown.Popover>
+            </Dropdown>
           )}
         </div>
       </div>

@@ -5,16 +5,11 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
 import { LayoutDashboard, LogOut, Menu, MoreHorizontal, ClipboardCheck, User } from "lucide-react";
-import { Avatar as HeroAvatar } from "@heroui/react";
+import { Avatar as HeroAvatar, Button, Dropdown, Label } from "@heroui/react";
 import { NAV_SECTIONS } from "@/lib/nav-items";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/nav/theme-toggle";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
-import {
-  DropdownMenu, DropdownMenuContent, DropdownMenuGroup, DropdownMenuItem,
-  DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { useAuth } from "@/contexts/AuthContext";
 import { cn } from "@/lib/utils";
 
@@ -43,7 +38,7 @@ export function MobileNav() {
     <>
       <header className="sticky top-0 z-30 flex h-14 items-center justify-between border-b border-sidebar-border bg-sidebar/80 px-4 backdrop-blur-xl md:hidden">
         <div className="flex items-center gap-2">
-          <Button variant="ghost" size="icon" onClick={() => setDrawerOpen(true)} aria-label="Buka menu" className="size-8">
+          <Button variant="ghost" size="sm" onClick={() => setDrawerOpen(true)} aria-label="Buka menu" className="size-8 p-0">
             <Menu className="size-4.5" />
           </Button>
           <div className="relative flex size-7 shrink-0 items-center justify-center overflow-hidden rounded-lg shadow-sm shadow-primary/25 ring-1 ring-white/40 ring-inset">
@@ -113,34 +108,37 @@ export function MobileNav() {
             </nav>
             <div className="border-t border-sidebar-border/70 p-4">
               {user && (
-                <DropdownMenu>
-                  <DropdownMenuTrigger
-                    render={
-                      <button className="flex w-full items-center gap-2.5 rounded-xl border border-sidebar-border/70 bg-sidebar-accent/30 p-2 text-left transition-colors hover:bg-sidebar-accent/60">
-                        <HeroAvatar.Root size="sm" variant="soft" color="accent" className="size-8 border border-primary/20">
-                          <HeroAvatar.Fallback className="text-xs font-bold">{initials}</HeroAvatar.Fallback>
-                        </HeroAvatar.Root>
-                        <div className="min-w-0 flex-1 text-sm">
-                          <p className="truncate font-semibold">{user.name}</p>
+                <Dropdown>
+                  <Button
+                    aria-label="Menu akun"
+                    variant="secondary"
+                    className="flex w-full items-center gap-2.5 rounded-xl border border-sidebar-border/70 bg-sidebar-accent/30 p-2 text-left font-normal transition-colors hover:bg-sidebar-accent/60"
+                  >
+                    <HeroAvatar.Root size="sm" variant="soft" color="accent" className="size-8 border border-primary/20">
+                      <HeroAvatar.Fallback className="text-xs font-bold">{initials}</HeroAvatar.Fallback>
+                    </HeroAvatar.Root>
+                    <div className="min-w-0 flex-1 text-sm">
+                      <p className="truncate font-semibold">{user.name}</p>
+                      <p className="truncate text-xs text-muted-foreground">{user.email}</p>
+                    </div>
+                  </Button>
+                  <Dropdown.Popover placement="top start">
+                    <Dropdown.Menu onAction={(key) => { if (key === "logout") handleLogout(); }}>
+                      <Dropdown.Item id="user-info" textValue={user.name} isDisabled>
+                        <Label className="opacity-100">
+                          <p className="truncate text-sm font-semibold text-foreground">{user.name}</p>
                           <p className="truncate text-xs text-muted-foreground">{user.email}</p>
-                        </div>
-                      </button>
-                    }
-                  />
-                  <DropdownMenuContent side="top" align="start" className="w-56">
-                    <DropdownMenuGroup>
-                      <DropdownMenuLabel className="px-2 py-1.5 font-normal">
-                        <p className="truncate text-sm font-semibold text-foreground">{user.name}</p>
-                        <p className="truncate text-xs text-muted-foreground">{user.email}</p>
-                      </DropdownMenuLabel>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem variant="destructive" onClick={handleLogout}>
-                        <LogOut className="size-4" />
-                        Log out
-                      </DropdownMenuItem>
-                    </DropdownMenuGroup>
-                  </DropdownMenuContent>
-                </DropdownMenu>
+                        </Label>
+                      </Dropdown.Item>
+                      <Dropdown.Item id="logout" textValue="Log out" variant="danger">
+                        <Label className="flex items-center gap-2 opacity-100">
+                          <LogOut className="size-4" />
+                          Log out
+                        </Label>
+                      </Dropdown.Item>
+                    </Dropdown.Menu>
+                  </Dropdown.Popover>
+                </Dropdown>
               )}
             </div>
           </div>
