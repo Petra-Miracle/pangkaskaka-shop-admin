@@ -100,7 +100,8 @@ export default function RevenuePage() {
 
     const shopName = shopsById[selectedShopId]?.name || selectedShopId;
 
-    const txStartRow = 16;
+    const txHeaderRow = 16;
+    const txStartRow = txHeaderRow + 1;
     const txEndRow = txStartRow + transactions.length - 1;
 
     const rows: (string | number | { f: string })[][] = [
@@ -114,9 +115,10 @@ export default function RevenuePage() {
       ["RINGKASAN KEUANGAN"],
       [""],
       ["Keterangan", "Jumlah"],
+      ["Total Transaksi", { f: `COUNTA(A${txStartRow}:A${txEndRow})` }],
       ["Total Pendapatan (Pemasukan)", { f: `SUMIF(E${txStartRow}:E${txEndRow},"Pendapatan",F${txStartRow}:F${txEndRow})` }],
       ["Total Pengeluaran (Pengeluaran)", { f: `ABS(SUMIF(E${txStartRow}:E${txEndRow},"Pengeluaran",F${txStartRow}:F${txEndRow}))` }],
-      ["Laba Bersih", { f: `B10-B11` }],
+      ["Laba Bersih", { f: `B11-B12` }],
       [""],
       [""],
       ["DATA TRANSAKSI"],
