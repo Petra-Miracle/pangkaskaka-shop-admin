@@ -5,7 +5,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
 import { LayoutDashboard, LogOut, Menu, MoreHorizontal, ClipboardCheck, User } from "lucide-react";
-import { Avatar as HeroAvatar, Button, Dropdown, Label } from "@heroui/react";
+import { Avatar as HeroAvatar, Button, Dropdown, Label, Separator } from "@heroui/react";
 import { NAV_SECTIONS } from "@/lib/nav-items";
 import { Badge } from "@/components/ui/badge";
 import { ThemeToggle } from "@/components/nav/theme-toggle";
@@ -109,32 +109,36 @@ export function MobileNav() {
             <div className="border-t border-sidebar-border/70 p-4">
               {user && (
                 <Dropdown>
-                  <Button
-                    aria-label="Menu akun"
-                    variant="secondary"
-                    className="flex w-full items-center gap-2.5 rounded-xl border border-sidebar-border/70 bg-sidebar-accent/30 p-2 text-left font-normal transition-colors hover:bg-sidebar-accent/60"
-                  >
-                    <HeroAvatar.Root size="sm" variant="soft" color="accent" className="size-8 border border-primary/20">
-                      <HeroAvatar.Fallback className="text-xs font-bold">{initials}</HeroAvatar.Fallback>
-                    </HeroAvatar.Root>
-                    <div className="min-w-0 flex-1 text-sm">
-                      <p className="truncate font-semibold">{user.name}</p>
-                      <p className="truncate text-xs text-muted-foreground">{user.email}</p>
-                    </div>
-                  </Button>
+                  <Dropdown.Trigger className="w-full">
+                    <button className="flex w-full items-center gap-2.5 rounded-xl border border-sidebar-border/70 bg-sidebar-accent/30 p-2 text-left transition-colors hover:bg-sidebar-accent/60">
+                      <HeroAvatar.Root size="sm" variant="soft" color="accent" className="size-8 border border-primary/20">
+                        <HeroAvatar.Fallback className="text-xs font-bold">{initials}</HeroAvatar.Fallback>
+                      </HeroAvatar.Root>
+                      <div className="min-w-0 flex-1 text-sm">
+                        <p className="truncate font-semibold">{user.name}</p>
+                        <p className="truncate text-xs text-muted-foreground">{user.email}</p>
+                      </div>
+                    </button>
+                  </Dropdown.Trigger>
                   <Dropdown.Popover placement="top start">
-                    <Dropdown.Menu onAction={(key) => { if (key === "logout") handleLogout(); }}>
-                      <Dropdown.Item id="user-info" textValue={user.name} isDisabled>
-                        <Label className="opacity-100">
-                          <p className="truncate text-sm font-semibold text-foreground">{user.name}</p>
+                    <div className="px-3 pt-3 pb-1">
+                      <div className="flex items-center gap-2.5">
+                        <HeroAvatar.Root size="sm" variant="soft" color="accent" className="size-8 border border-primary/20">
+                          <HeroAvatar.Fallback className="text-xs font-bold">{initials}</HeroAvatar.Fallback>
+                        </HeroAvatar.Root>
+                        <div className="min-w-0 flex-1 leading-tight">
+                          <p className="truncate text-sm font-semibold">{user.name}</p>
                           <p className="truncate text-xs text-muted-foreground">{user.email}</p>
-                        </Label>
-                      </Dropdown.Item>
+                        </div>
+                      </div>
+                    </div>
+                    <Separator />
+                    <Dropdown.Menu onAction={(key) => { if (key === "logout") handleLogout(); }}>
                       <Dropdown.Item id="logout" textValue="Log out" variant="danger">
-                        <Label className="flex items-center gap-2 opacity-100">
-                          <LogOut className="size-4" />
-                          Log out
-                        </Label>
+                        <div className="flex w-full items-center justify-between gap-2">
+                          <Label>Log Out</Label>
+                          <LogOut className="size-3.5 text-destructive" />
+                        </div>
                       </Dropdown.Item>
                     </Dropdown.Menu>
                   </Dropdown.Popover>

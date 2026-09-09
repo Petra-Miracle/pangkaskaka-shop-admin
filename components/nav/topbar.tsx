@@ -3,7 +3,7 @@
 import { usePathname } from "next/navigation";
 import Link from "next/link";
 import { ChevronRight, LayoutDashboard, LogOut } from "lucide-react";
-import { Avatar as HeroAvatar, Button, Dropdown, Label } from "@heroui/react";
+import { Avatar as HeroAvatar, Dropdown, Label, Separator } from "@heroui/react";
 import { ThemeToggle } from "@/components/nav/theme-toggle";
 import { NAV_SECTIONS } from "@/lib/nav-items";
 import { useAuth } from "@/contexts/AuthContext";
@@ -46,29 +46,33 @@ export function Topbar() {
           <ThemeToggle />
           {user && (
             <Dropdown>
-              <Button
-                aria-label="Menu akun"
-                variant="secondary"
-                className="ml-1 flex items-center gap-2 rounded-full border border-sidebar-border/70 bg-background/60 py-0.5 pr-2 pl-0.5 font-normal transition-colors hover:border-primary/25"
-              >
-                <HeroAvatar.Root size="sm" variant="soft" color="accent" className="size-7 border border-primary/20">
-                  <HeroAvatar.Fallback className="text-[10px] font-bold">{initials}</HeroAvatar.Fallback>
-                </HeroAvatar.Root>
-                <span className="hidden max-w-32 truncate text-xs font-semibold lg:inline">{user.name}</span>
-              </Button>
+              <Dropdown.Trigger className="ml-1 rounded-full">
+                <button className="flex items-center gap-2 rounded-full border border-sidebar-border/70 bg-background/60 py-0.5 pr-2 pl-0.5 transition-colors hover:border-primary/25" aria-label="Menu akun">
+                  <HeroAvatar.Root size="sm" variant="soft" color="accent" className="size-7 border border-primary/20">
+                    <HeroAvatar.Fallback className="text-[10px] font-bold">{initials}</HeroAvatar.Fallback>
+                  </HeroAvatar.Root>
+                  <span className="hidden max-w-32 truncate text-xs font-semibold lg:inline">{user.name}</span>
+                </button>
+              </Dropdown.Trigger>
               <Dropdown.Popover placement="bottom end">
-                <Dropdown.Menu onAction={(key) => { if (key === "logout") logout(); }}>
-                  <Dropdown.Item id="user-info" textValue={user.name} isDisabled>
-                    <Label className="opacity-100">
-                      <p className="truncate text-sm font-semibold text-foreground">{user.name}</p>
+                <div className="px-3 pt-3 pb-1">
+                  <div className="flex items-center gap-2.5">
+                    <HeroAvatar.Root size="sm" variant="soft" color="accent" className="size-8 border border-primary/20">
+                      <HeroAvatar.Fallback className="text-xs font-bold">{initials}</HeroAvatar.Fallback>
+                    </HeroAvatar.Root>
+                    <div className="min-w-0 flex-1 leading-tight">
+                      <p className="truncate text-sm font-semibold">{user.name}</p>
                       <p className="truncate text-xs text-muted-foreground">{user.email}</p>
-                    </Label>
-                  </Dropdown.Item>
+                    </div>
+                  </div>
+                </div>
+                <Separator />
+                <Dropdown.Menu onAction={(key) => { if (key === "logout") logout(); }}>
                   <Dropdown.Item id="logout" textValue="Log out" variant="danger">
-                    <Label className="flex items-center gap-2 opacity-100">
-                      <LogOut className="size-4" />
-                      Log out
-                    </Label>
+                    <div className="flex w-full items-center justify-between gap-2">
+                      <Label>Log Out</Label>
+                      <LogOut className="size-3.5 text-destructive" />
+                    </div>
                   </Dropdown.Item>
                 </Dropdown.Menu>
               </Dropdown.Popover>
