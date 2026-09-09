@@ -1,7 +1,8 @@
-import { Product, Service } from "./types";
+import { Product, Service, Barber } from "./types";
 
 const PRODUCTS_KEY = "pk_products";
 const SERVICES_KEY = "pk_services";
+const BARBERS_KEY = "pk_barbers";
 
 function read<T>(key: string): T[] {
   try {
@@ -101,5 +102,47 @@ export function deleteService(id: string): boolean {
   const next = all.filter((s) => s.id !== id);
   if (next.length === all.length) return false;
   write(SERVICES_KEY, next);
+  return true;
+}
+
+/* ── Barbers ── */
+
+export function getBarbers(): Barber[] {
+  return read<Barber>(BARBERS_KEY);
+}
+
+export function createBarber(
+  data: Omit<Barber, "id" | "created_at" | "updated_at">
+): Barber {
+  const now = new Date().toISOString();
+  const barber: Barber = {
+    ...data,
+    id: genId(),
+    created_at: now,
+    updated_at: now,
+  };
+  const all = getBarbers();
+  all.unshift(barber);
+  write(BARBERS_KEY, all);
+  return barber;
+}
+
+export function updateBarber(
+  id: string,
+  patch: Partial<Barber>
+): Barber | null {
+  const all = getBarbers();
+  const idx = all.findIndex((b) => b.id === id);
+  if (idx === -1) return null;
+  all[idx] = { ...all[idx], ...patch, updated_at: new Date().toISOString() };
+  write(BARBERS_KEY, all);
+  return all[idx];
+}
+
+export function deleteBarber(id: string): boolean {
+  const all = getBarbers();
+  const next = all.filter((b) => b.id !== id);
+  if (next.length === all.length) return false;
+  write(BARBERS_KEY, next);
   return true;
 }

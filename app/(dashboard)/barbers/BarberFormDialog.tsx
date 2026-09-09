@@ -3,7 +3,9 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { api, ApiError } from "@/lib/api";
+import { FEATURES } from "@/lib/features";
 import { Barber, BarberFormData } from "@/lib/types";
+import { createBarber, updateBarber } from "@/lib/storage";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -58,15 +60,28 @@ export function BarberFormDialog({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+
+    const payload: BarberFormData & { shop_id: string } = {
+      name,
+      phone: phone || undefined,
+      email: email || undefined,
+      specialization: specialization || undefined,
+      is_active: isActive,
+      shop_id: selectedShopId,
+    };
+
     try {
-      const payload: BarberFormData & { shop_id: string } = {
-        name,
-        phone: phone || undefined,
-        email: email || undefined,
-        specialization: specialization || undefined,
-        is_active: isActive,
-        shop_id: selectedShopId,
-      };
+      if (!FEATURES.barbers) {
+        if (barber) {
+          const updated = updateBarber(barber.id, payload);
+          if (updated) onUpdated?.(barber.id, updated);
+        } else {
+          const created = createBarber(payload);
+          onCreated?.(created);
+        }
+        onOpenChange(false);
+        return;
+      }
 
       if (barber) {
         const updated = await api.put<Barber>(
@@ -84,7 +99,14 @@ export function BarberFormDialog({
       onOpenChange(false);
     } catch (err) {
       if (err instanceof ApiError && err.status === 404) {
-        setError("Fitur karyawan belum tersedia di server.");
+        if (barber) {
+          const updated = updateBarber(barber.id, payload);
+          if (updated) onUpdated?.(barber.id, updated);
+        } else {
+          const created = createBarber(payload);
+          onCreated?.(created);
+        }
+        onOpenChange(false);
       } else {
         setError(
           err instanceof ApiError

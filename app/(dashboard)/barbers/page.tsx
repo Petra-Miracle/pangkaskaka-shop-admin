@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { api, ApiError } from "@/lib/api";
 import { FEATURES } from "@/lib/features";
 import { Barber } from "@/lib/types";
+import { getBarbers, createBarber, updateBarber, deleteBarber } from "@/lib/storage";
 import { PageHeader } from "@/components/nav/page-header";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -119,6 +120,7 @@ export default function BarbersPage() {
 
   const fetchBarbers = useCallback(async () => {
     if (!FEATURES.barbers) {
+      setBarbers(getBarbers());
       setLoading(false);
       return;
     }
@@ -129,7 +131,7 @@ export default function BarbersPage() {
       setBarbers(res.barbers || []);
     } catch (err) {
       if (err instanceof ApiError && err.status === 404) {
-        setError("Fitur karyawan belum tersedia di server.");
+        setBarbers(getBarbers());
       } else {
         setError(
           err instanceof Error ? err.message : "Gagal memuat daftar karyawan."
@@ -172,8 +174,13 @@ export default function BarbersPage() {
     async (id: string) => {
       if (!confirm("Yakin ingin menghapus karyawan ini?")) return;
       try {
-        await api.del(`/shop-admin/barbers/${id}`);
-        removeLocal(id);
+        if (!FEATURES.barbers) {
+          deleteBarber(id);
+          removeLocal(id);
+        } else {
+          await api.del(`/shop-admin/barbers/${id}`);
+          removeLocal(id);
+        }
       } catch (err) {
         alert(
           err instanceof ApiError ? err.message : "Gagal menghapus karyawan."
