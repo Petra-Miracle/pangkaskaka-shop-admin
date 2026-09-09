@@ -2,7 +2,6 @@
 
 import { useSearchParams } from "next/navigation";
 import { Suspense, useMemo, useState } from "react";
-import type { Selection } from "@heroui/react";
 import { Button, Dropdown, Label } from "@heroui/react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useApplicants } from "@/contexts/ApplicantsContext";
@@ -14,7 +13,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { DataTable, legacyCreateColumnHelper } from "@/components/ui/data-table";
 import type { LegacyColumnDef } from "@tanstack/react-table/legacy";
-import { Filter } from "lucide-react";
+import { Filter, Check } from "lucide-react";
 
 const STATUS_OPTIONS: { value: ApplicantStatus | "all"; label: string }[] = [
   { value: "all", label: "Semua Status" },
@@ -105,33 +104,42 @@ export default function ApplicantsPage() {
   );
 }
 
+function FilterItem({ label, isSelected, onSelect }: { label: string; isSelected: boolean; onSelect: () => void }) {
+  return (
+    <Dropdown.Item id={label} textValue={label} onAction={onSelect}>
+      <div className="flex items-center gap-2">
+        <span className="flex size-4 shrink-0 items-center justify-center">
+          {isSelected && <Check className="size-3.5 text-primary" />}
+        </span>
+        <Label>{label}</Label>
+      </div>
+    </Dropdown.Item>
+  );
+}
+
 function ApplicantsPageInner() {
   const searchParams = useSearchParams();
   const { user, shopsById } = useAuth();
   const { applicants, loading, error } = useApplicants();
 
-  const [shopFilter, setShopFilter] = useState<Selection>(new Set([searchParams.get("shop") || "all"]));
-  const [statusFilter, setStatusFilter] = useState<Selection>(new Set(["all"]));
+  const [shopFilter, setShopFilter] = useState(searchParams.get("shop") || "all");
+  const [statusFilter, setStatusFilter] = useState<ApplicantStatus | "all">("all");
 
   const managedShopIds = user?.managed_shop_ids || [];
 
   const selectedShopLabel = useMemo(() => {
-    const val = Array.from(shopFilter)[0] as string;
-    if (val === "all") return "Semua Toko";
-    return shopsById[val]?.name || val;
+    if (shopFilter === "all") return "Semua Toko";
+    return shopsById[shopFilter]?.name || shopFilter;
   }, [shopFilter, shopsById]);
 
   const selectedStatusLabel = useMemo(() => {
-    const val = Array.from(statusFilter)[0] as string;
-    return STATUS_OPTIONS.find((o) => o.value === val)?.label || "Semua Status";
+    return STATUS_OPTIONS.find((o) => o.value === statusFilter)?.label || "Semua Status";
   }, [statusFilter]);
 
   const filtered = useMemo(() => {
-    const shopVal = Array.from(shopFilter)[0] as string;
-    const statusVal = Array.from(statusFilter)[0] as string;
     return applicants
-      .filter((a) => shopVal === "all" || a.shop_id === shopVal)
-      .filter((a) => statusVal === "all" || a.status === statusVal);
+      .filter((a) => shopFilter === "all" || a.shop_id === shopFilter)
+      .filter((a) => statusFilter === "all" || a.status === statusFilter);
   }, [applicants, shopFilter, statusFilter]);
 
   const columns = useMemo(() => makeColumns(shopsById), [shopsById]);
@@ -151,20 +159,19 @@ function ApplicantsPageInner() {
             {selectedShopLabel}
           </Button>
           <Dropdown.Popover placement="bottom start" className="min-w-[220px]">
-            <Dropdown.Menu
-              selectionMode="single"
-              selectedKeys={shopFilter}
-              onSelectionChange={setShopFilter}
-            >
-              <Dropdown.Item id="all" textValue="Semua Toko">
-                <Dropdown.ItemIndicator />
-                <Label>Semua Toko</Label>
-              </Dropdown.Item>
+            <Dropdown.Menu>
+              <FilterItem
+                label="Semua Toko"
+                isSelected={shopFilter === "all"}
+                onSelect={() => setShopFilter("all")}
+              />
               {managedShopIds.map((id) => (
-                <Dropdown.Item key={id} id={id} textValue={shopsById[id]?.name || id}>
-                  <Dropdown.ItemIndicator />
-                  <Label>{shopsById[id]?.name || id}</Label>
-                </Dropdown.Item>
+                <FilterItem
+                  key={id}
+                  label={shopsById[id]?.name || id}
+                  isSelected={shopFilter === id}
+                  onSelect={() => setShopFilter(id)}
+                />
               ))}
             </Dropdown.Menu>
           </Dropdown.Popover>
@@ -176,16 +183,14 @@ function ApplicantsPageInner() {
             {selectedStatusLabel}
           </Button>
           <Dropdown.Popover placement="bottom start" className="min-w-[256px]">
-            <Dropdown.Menu
-              selectionMode="single"
-              selectedKeys={statusFilter}
-              onSelectionChange={setStatusFilter}
-            >
+            <Dropdown.Menu>
               {STATUS_OPTIONS.map((opt) => (
-                <Dropdown.Item key={opt.value} id={opt.value} textValue={opt.label}>
-                  <Dropdown.ItemIndicator />
-                  <Label>{opt.label}</Label>
-                </Dropdown.Item>
+                <FilterItem
+                  key={opt.value}
+                  label={opt.label}
+                  isSelected={statusFilter === opt.value}
+                  onSelect={() => setStatusFilter(opt.value)}
+                />
               ))}
             </Dropdown.Menu>
           </Dropdown.Popover>
