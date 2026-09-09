@@ -3,7 +3,7 @@
 import { useSearchParams } from "next/navigation";
 import { Suspense, useMemo, useState } from "react";
 import type { Selection } from "@heroui/react";
-import { Button, Dropdown, Header, Label } from "@heroui/react";
+import { Button, Dropdown, Label } from "@heroui/react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useApplicants } from "@/contexts/ApplicantsContext";
 import { ApplicantStatus, KaryawanApplication } from "@/lib/types";
@@ -156,19 +156,16 @@ function ApplicantsPageInner() {
               selectedKeys={shopFilter}
               onSelectionChange={setShopFilter}
             >
-              <Dropdown.Section>
-                <Header>Pilih Toko</Header>
-                <Dropdown.Item id="all" textValue="Semua Toko">
+              <Dropdown.Item id="all" textValue="Semua Toko">
+                <Dropdown.ItemIndicator />
+                <Label>Semua Toko</Label>
+              </Dropdown.Item>
+              {managedShopIds.map((id) => (
+                <Dropdown.Item key={id} id={id} textValue={shopsById[id]?.name || id}>
                   <Dropdown.ItemIndicator />
-                  <Label>Semua Toko</Label>
+                  <Label>{shopsById[id]?.name || id}</Label>
                 </Dropdown.Item>
-                {managedShopIds.map((id) => (
-                  <Dropdown.Item key={id} id={id} textValue={shopsById[id]?.name || id}>
-                    <Dropdown.ItemIndicator />
-                    <Label>{shopsById[id]?.name || id}</Label>
-                  </Dropdown.Item>
-                ))}
-              </Dropdown.Section>
+              ))}
             </Dropdown.Menu>
           </Dropdown.Popover>
         </Dropdown>
@@ -184,15 +181,12 @@ function ApplicantsPageInner() {
               selectedKeys={statusFilter}
               onSelectionChange={setStatusFilter}
             >
-              <Dropdown.Section>
-                <Header>Pilih Status</Header>
-                {STATUS_OPTIONS.map((opt) => (
-                  <Dropdown.Item key={opt.value} id={opt.value} textValue={opt.label}>
-                    <Dropdown.ItemIndicator />
-                    <Label>{opt.label}</Label>
-                  </Dropdown.Item>
-                ))}
-              </Dropdown.Section>
+              {STATUS_OPTIONS.map((opt) => (
+                <Dropdown.Item key={opt.value} id={opt.value} textValue={opt.label}>
+                  <Dropdown.ItemIndicator />
+                  <Label>{opt.label}</Label>
+                </Dropdown.Item>
+              ))}
             </Dropdown.Menu>
           </Dropdown.Popover>
         </Dropdown>
