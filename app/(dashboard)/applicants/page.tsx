@@ -5,9 +5,14 @@ import { useSearchParams } from "next/navigation";
 import { Suspense, useMemo, useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useApplicants } from "@/contexts/ApplicantsContext";
+import { ApplicantStatus, KaryawanApplication } from "@/lib/types";
+import { formatRelativeTime } from "@/lib/utils";
 import { PageHeader } from "@/components/nav/page-header";
 import { StatusBadge } from "@/components/StatusBadge";
-import { ApplicantStatus } from "@/lib/types";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
+import { DataTable, legacyCreateColumnHelper } from "@/components/ui/data-table";
+import type { LegacyColumnDef } from "@tanstack/react-table/legacy";
 
 const STATUS_OPTIONS: { value: ApplicantStatus | "all"; label: string }[] = [
   { value: "all", label: "Semua Status" },
@@ -17,6 +22,78 @@ const STATUS_OPTIONS: { value: ApplicantStatus | "all"; label: string }[] = [
   { value: "active", label: "StreetBarber Aktif" },
   { value: "rejected", label: "Ditolak" },
 ];
+
+function initialsOf(name?: string) {
+  return (name ?? "?")
+    .split(" ")
+    .map((p) => p[0])
+    .slice(0, 2)
+    .join("")
+    .toUpperCase();
+}
+
+function makeColumns(
+  shopsById: Record<string, { name: string } | undefined>
+): LegacyColumnDef<KaryawanApplication, any>[] {
+  const columnHelper = legacyCreateColumnHelper<KaryawanApplication>();
+
+  return [
+    columnHelper.accessor("name", {
+      header: "Nama",
+      cell: ({ row, getValue }) => (
+        <div className="flex items-center gap-3">
+          <Avatar className="size-9 border border-primary/10">
+            <AvatarFallback className="bg-gradient-to-br from-primary/12 to-primary/5 text-xs font-bold text-primary">
+              {initialsOf(getValue() as string)}
+            </AvatarFallback>
+          </Avatar>
+          <div className="min-w-0 leading-tight">
+            <p className="max-w-52 truncate font-semibold">{getValue() as string}</p>
+            <p className="truncate text-xs text-muted-foreground">
+              {row.original.email || "—"}
+            </p>
+          </div>
+        </div>
+      ),
+    }),
+    columnHelper.accessor("shop_id", {
+      header: "Toko",
+      cell: (info) => {
+        const shopName = shopsById[info.getValue()]?.name;
+        return shopName ? (
+          <Badge variant="outline" className="gap-1.5 border-transparent bg-primary/10 font-medium text-primary">
+            {shopName}
+          </Badge>
+        ) : (
+          <span className="text-xs text-muted-foreground">—</span>
+        );
+      },
+    }),
+    columnHelper.accessor("status", {
+      header: "Status",
+      cell: (info) => <StatusBadge status={info.getValue()} />,
+    }),
+    columnHelper.accessor("total_score", {
+      header: "Skor",
+      cell: (info) => {
+        const val = info.getValue();
+        return val ? (
+          <span className="tabular-nums font-semibold">{val}</span>
+        ) : (
+          <span className="text-muted-foreground">—</span>
+        );
+      },
+    }),
+    columnHelper.accessor("created_at", {
+      header: "Diajukan",
+      cell: (info) => (
+        <span className="text-muted-foreground" title={new Date(info.getValue() as string).toLocaleString("id-ID")}>
+          {formatRelativeTime(info.getValue() as string)}
+        </span>
+      ),
+    }),
+  ];
+}
 
 export default function ApplicantsPage() {
   return (
@@ -39,12 +116,10 @@ function ApplicantsPageInner() {
   const filtered = useMemo(() => {
     return applicants
       .filter((a) => shopFilter === "all" || a.shop_id === shopFilter)
-      .filter((a) => statusFilter === "all" || a.status === statusFilter)
-      .sort(
-        (a, b) =>
-          new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-      );
+      .filter((a) => statusFilter === "all" || a.status === statusFilter);
   }, [applicants, shopFilter, statusFilter]);
+
+  const columns = useMemo(() => makeColumns(shopsById), [shopsById]);
 
   return (
     <div className="space-y-6">
@@ -70,9 +145,7 @@ function ApplicantsPageInner() {
 
         <select
           value={statusFilter}
-          onChange={(e) =>
-            setStatusFilter(e.target.value as ApplicantStatus | "all")
-          }
+          onChange={(e) => setStatusFilter(e.target.value as ApplicantStatus | "all")}
           className="rounded-xl border border-border bg-card px-3 py-2 text-sm font-medium text-foreground outline-none focus:border-primary"
         >
           {STATUS_OPTIONS.map((opt) => (
@@ -89,53 +162,25 @@ function ApplicantsPageInner() {
         </div>
       )}
 
-      {loading ? (
-        <div className="glass-card rounded-2xl p-6 text-center text-sm text-muted-foreground">Memuat...</div>
-      ) : filtered.length === 0 ? (
-        <div className="glass-card rounded-2xl p-6 text-center">
-          <p className="font-semibold text-foreground">Tidak ada pelamar.</p>
-          <p className="mt-1 text-sm text-muted-foreground">
-            {applicants.length === 0
-              ? "Belum ada pelamar StreetBarber untuk toko yang Anda kelola."
-              : "Tidak ada pelamar yang cocok dengan filter saat ini."}
-          </p>
-        </div>
-      ) : (
-        <div className="space-y-6">
-          {filtered.map((a) => (
-            <Link key={a.id} href={`/applicants/${a.id}`}>
-              <div className="glass-card glass-card-hover rounded-2xl flex items-center justify-between gap-4 px-5 py-4">
-                <div className="min-w-0 flex-1">
-                  <p className="truncate text-[15px] font-bold leading-snug text-foreground">
-                    {a.name}
-                  </p>
-                  <p className="mt-1 truncate text-sm text-muted-foreground">
-                    {shopsById[a.shop_id]?.name || a.shop_id}
-                    <span className="mx-1.5 opacity-40">&middot;</span>
-                    <span className="lowercase">{a.email}</span>
-                  </p>
-                  <p className="mt-0.5 text-xs text-muted-foreground/60">
-                    Diajukan{" "}
-                    {new Date(a.created_at).toLocaleDateString("id-ID", {
-                      day: "numeric",
-                      month: "long",
-                      year: "numeric",
-                    })}
-                  </p>
-                </div>
-                <div className="flex shrink-0 items-center gap-3">
-                  <StatusBadge status={a.status} />
-                  {a.evaluated_at && (
-                    <span className="whitespace-nowrap text-sm font-semibold tabular-nums text-muted-foreground">
-                      {a.total_score}
-                    </span>
-                  )}
-                </div>
-              </div>
-            </Link>
-          ))}
-        </div>
-      )}
+      <div className="glass-card rounded-2xl overflow-hidden p-0">
+        <DataTable
+          columns={columns}
+          data={filtered}
+          loading={loading}
+          initialSorting={[{ id: "created_at", desc: true }]}
+          pageSize={10}
+          onRowClick={(row) => {
+            window.location.href = `/applicants/${row.id}`;
+          }}
+          emptyState={
+            <p className="text-sm text-muted-foreground">
+              {applicants.length === 0
+                ? "Belum ada pelamar StreetBarber untuk toko yang Anda kelola."
+                : "Tidak ada pelamar yang cocok dengan filter saat ini."}
+            </p>
+          }
+        />
+      </div>
     </div>
   );
 }

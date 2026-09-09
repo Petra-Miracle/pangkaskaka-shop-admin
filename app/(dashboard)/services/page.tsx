@@ -5,27 +5,88 @@ import { api, ApiError } from "@/lib/api";
 import { FEATURES } from "@/lib/features";
 import { Service } from "@/lib/types";
 import { getServices, deleteService } from "@/lib/storage";
+import { formatRupiah } from "@/lib/utils";
 import { PageHeader } from "@/components/nav/page-header";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+import { DataTable, legacyCreateColumnHelper } from "@/components/ui/data-table";
+import type { LegacyColumnDef } from "@tanstack/react-table/legacy";
 import { ServiceFormDialog } from "./ServiceFormDialog";
 import { Plus, Pencil, Trash2 } from "lucide-react";
 
-function formatRupiah(amount: number) {
-  return new Intl.NumberFormat("id-ID", {
-    style: "currency",
-    currency: "IDR",
-    minimumFractionDigits: 0,
-  }).format(amount);
-}
+type ServiceRow = Service & { _onEdit?: (s: Service) => void; _onDelete?: (id: string) => void };
+
+const columnHelper = legacyCreateColumnHelper<ServiceRow>();
+
+const columns: LegacyColumnDef<ServiceRow, any>[] = [
+  columnHelper.accessor("name", {
+    header: "Nama",
+    cell: (info) => <span className="font-semibold">{info.getValue()}</span>,
+  }),
+  columnHelper.accessor("description", {
+    header: "Deskripsi",
+    cell: (info) => (
+      <span className="max-w-[200px] truncate text-muted-foreground">
+        {info.getValue() || "-"}
+      </span>
+    ),
+  }),
+  columnHelper.accessor("price", {
+    header: "Harga",
+    cell: (info) => (
+      <span className="tabular-nums">{formatRupiah(info.getValue())}</span>
+    ),
+  }),
+  columnHelper.accessor("duration_minutes", {
+    header: "Durasi",
+    cell: (info) => {
+      const val = info.getValue();
+      return val ? `${val} menit` : "-";
+    },
+  }),
+  columnHelper.accessor("is_active", {
+    header: "Status",
+    cell: (info) =>
+      info.getValue() ? (
+        <Badge className="bg-success/15 text-success">Aktif</Badge>
+      ) : (
+        <Badge variant="secondary">Nonaktif</Badge>
+      ),
+  }),
+  columnHelper.display({
+    id: "actions",
+    header: () => <span className="sr-only">Aksi</span>,
+    cell: ({ row }) => {
+      const svc = row.original;
+      return (
+        <div className="flex justify-end gap-1">
+          <Button
+            size="icon"
+            variant="ghost"
+            className="size-8"
+            onClick={(e) => {
+              e.stopPropagation();
+              svc._onEdit?.(svc);
+            }}
+          >
+            <Pencil className="size-3.5" />
+          </Button>
+          <Button
+            size="icon"
+            variant="ghost"
+            className="size-8"
+            onClick={(e) => {
+              e.stopPropagation();
+              svc._onDelete?.(svc.id);
+            }}
+          >
+            <Trash2 className="size-3.5 text-destructive" />
+          </Button>
+        </div>
+      );
+    },
+  }),
+];
 
 export default function ServicesPage() {
   const [services, setServices] = useState<Service[]>([]);
@@ -33,7 +94,6 @@ export default function ServicesPage() {
   const [error, setError] = useState<string | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingService, setEditingService] = useState<Service | undefined>();
-  const [deleting, setDeleting] = useState<string | null>(null);
 
   const fetchServices = useCallback(async () => {
     if (!FEATURES.services) {
@@ -44,17 +104,13 @@ export default function ServicesPage() {
     setLoading(true);
     setError(null);
     try {
-      const res = await api.get<{ services: Service[] }>(
-        "/shop-admin/services"
-      );
+      const res = await api.get<{ services: Service[] }>("/shop-admin/services");
       setServices(res.services || []);
     } catch (err) {
       if (err instanceof ApiError && err.status === 404) {
         setError("Fitur layanan belum tersedia di server.");
       } else {
-        setError(
-          err instanceof Error ? err.message : "Gagal memuat daftar layanan."
-        );
+        setError(err instanceof Error ? err.message : "Gagal memuat daftar layanan.");
       }
     } finally {
       setLoading(false);
@@ -70,9 +126,7 @@ export default function ServicesPage() {
   }, []);
 
   const updateLocal = useCallback((id: string, patch: Partial<Service>) => {
-    setServices((prev) =>
-      prev.map((s) => (s.id === id ? { ...s, ...patch } : s))
-    );
+    setServices((prev) => prev.map((s) => (s.id === id ? { ...s, ...patch } : s)));
   }, []);
 
   const removeLocal = useCallback((id: string) => {
@@ -91,7 +145,6 @@ export default function ServicesPage() {
 
   const handleDelete = async (id: string) => {
     if (!confirm("Yakin ingin menghapus layanan ini?")) return;
-    setDeleting(id);
     try {
       if (!FEATURES.services) {
         deleteService(id);
@@ -101,13 +154,15 @@ export default function ServicesPage() {
         removeLocal(id);
       }
     } catch (err) {
-      alert(
-        err instanceof ApiError ? err.message : "Gagal menghapus layanan."
-      );
-    } finally {
-      setDeleting(null);
+      alert(err instanceof ApiError ? err.message : "Gagal menghapus layanan.");
     }
   };
+
+  const enrichedData: ServiceRow[] = services.map((s) => ({
+    ...s,
+    _onEdit: handleEdit,
+    _onDelete: handleDelete,
+  }));
 
   return (
     <div className="space-y-6">
@@ -136,82 +191,19 @@ export default function ServicesPage() {
         </div>
       )}
 
-      <div className="glass-card rounded-2xl">
-        {loading ? (
-          <div className="flex items-center justify-center p-12">
-            <div className="h-6 w-6 animate-spin rounded-full border-2 border-muted border-t-primary" />
-          </div>
-        ) : services.length === 0 ? (
-          <div className="p-12 text-center">
-            <p className="font-semibold text-foreground">
+      <div className="glass-card rounded-2xl overflow-hidden p-0">
+        <DataTable
+          columns={columns}
+          data={enrichedData}
+          loading={loading}
+          initialSorting={[{ id: "name", desc: false }]}
+          pageSize={10}
+          emptyState={
+            <p className="text-sm text-muted-foreground">
               {error ? "Belum ada data." : "Belum ada layanan."}
             </p>
-            {!error && (
-              <p className="mt-1 text-sm text-muted-foreground">
-                Klik &quot;Tambah Layanan&quot; untuk mulai menambahkan layanan.
-              </p>
-            )}
-          </div>
-        ) : (
-          <Table>
-            <TableHeader>
-              <TableRow className="border-b">
-                <TableHead className="py-4">Nama</TableHead>
-                <TableHead className="py-4">Deskripsi</TableHead>
-                <TableHead className="py-4 text-right">Harga</TableHead>
-                <TableHead className="py-4 text-right">Durasi</TableHead>
-                <TableHead className="py-4">Status</TableHead>
-                <TableHead className="py-4 text-right">Aksi</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {services.map((svc) => (
-                <TableRow key={svc.id} className="border-b last:border-b-0 hover:bg-muted/30">
-                  <TableCell className="py-5 font-medium">{svc.name}</TableCell>
-                  <TableCell className="py-5 max-w-[200px] truncate text-muted-foreground">
-                    {svc.description || "-"}
-                  </TableCell>
-                  <TableCell className="py-5 text-right">
-                    {formatRupiah(svc.price)}
-                  </TableCell>
-                  <TableCell className="py-5 text-right">
-                    {svc.duration_minutes
-                      ? `${svc.duration_minutes} menit`
-                      : "-"}
-                  </TableCell>
-                  <TableCell className="py-5">
-                    {svc.is_active ? (
-                      <Badge className="bg-success/15 text-success">
-                        Aktif
-                      </Badge>
-                    ) : (
-                      <Badge variant="secondary">Nonaktif</Badge>
-                    )}
-                  </TableCell>
-                  <TableCell className="py-5 text-right">
-                    <div className="flex justify-end gap-1">
-                      <Button
-                        variant="ghost"
-                        size="icon-sm"
-                        onClick={() => handleEdit(svc)}
-                      >
-                        <Pencil className="size-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon-sm"
-                        onClick={() => handleDelete(svc.id)}
-                        disabled={deleting === svc.id}
-                      >
-                        <Trash2 className="size-4 text-destructive" />
-                      </Button>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        )}
+          }
+        />
       </div>
 
       <ServiceFormDialog

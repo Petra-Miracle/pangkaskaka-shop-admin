@@ -5,27 +5,110 @@ import { api, ApiError } from "@/lib/api";
 import { FEATURES } from "@/lib/features";
 import { Product } from "@/lib/types";
 import { getProducts, deleteProduct } from "@/lib/storage";
+import { formatRupiah } from "@/lib/utils";
 import { PageHeader } from "@/components/nav/page-header";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+import { DataTable, legacyCreateColumnHelper } from "@/components/ui/data-table";
+import type { LegacyColumnDef } from "@tanstack/react-table/legacy";
 import { ProductFormDialog } from "./ProductFormDialog";
 import { Plus, Pencil, Trash2 } from "lucide-react";
 
-function formatRupiah(amount: number) {
-  return new Intl.NumberFormat("id-ID", {
-    style: "currency",
-    currency: "IDR",
-    minimumFractionDigits: 0,
-  }).format(amount);
-}
+type ProductRow = Product & { _onEdit?: (p: Product) => void; _onDelete?: (id: string) => void };
+
+const columnHelper = legacyCreateColumnHelper<ProductRow>();
+
+const columns: LegacyColumnDef<ProductRow, any>[] = [
+  columnHelper.accessor("name", {
+    header: "Nama",
+    cell: ({ row, getValue }) => (
+      <div className="flex items-center gap-3">
+        {row.original.image_url ? (
+          <img
+            src={row.original.image_url}
+            alt={getValue()}
+            className="size-9 rounded-lg object-cover"
+          />
+        ) : (
+          <div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-muted text-xs text-muted-foreground">
+            -
+          </div>
+        )}
+        <span className="font-semibold">{getValue()}</span>
+      </div>
+    ),
+  }),
+  columnHelper.accessor("category", {
+    header: "Kategori",
+    cell: (info) => {
+      const val = info.getValue();
+      return val ? (
+        <Badge variant="outline">{val}</Badge>
+      ) : (
+        <span className="text-muted-foreground">-</span>
+      );
+    },
+  }),
+  columnHelper.accessor("price", {
+    header: "Harga",
+    cell: (info) => (
+      <span className="tabular-nums">{formatRupiah(info.getValue())}</span>
+    ),
+  }),
+  columnHelper.accessor("stock", {
+    header: "Stok",
+    cell: (info) => {
+      const val = info.getValue() as number;
+      return (
+        <span className={val <= 5 ? "font-semibold text-destructive" : "tabular-nums"}>
+          {val}
+        </span>
+      );
+    },
+  }),
+  columnHelper.accessor("is_active", {
+    header: "Status",
+    cell: (info) =>
+      info.getValue() ? (
+        <Badge className="bg-success/15 text-success">Aktif</Badge>
+      ) : (
+        <Badge variant="secondary">Nonaktif</Badge>
+      ),
+  }),
+  columnHelper.display({
+    id: "actions",
+    header: () => <span className="sr-only">Aksi</span>,
+    cell: ({ row }) => {
+      const product = row.original;
+      return (
+        <div className="flex justify-end gap-1">
+          <Button
+            size="icon"
+            variant="ghost"
+            className="size-8"
+            onClick={(e) => {
+              e.stopPropagation();
+              product._onEdit?.(product);
+            }}
+          >
+            <Pencil className="size-3.5" />
+          </Button>
+          <Button
+            size="icon"
+            variant="ghost"
+            className="size-8"
+            onClick={(e) => {
+              e.stopPropagation();
+              product._onDelete?.(product.id);
+            }}
+          >
+            <Trash2 className="size-3.5 text-destructive" />
+          </Button>
+        </div>
+      );
+    },
+  }),
+];
 
 export default function ProductsPage() {
   const [products, setProducts] = useState<Product[]>([]);
@@ -34,7 +117,6 @@ export default function ProductsPage() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | undefined>();
   const [filterCategory, setFilterCategory] = useState<string>("all");
-  const [deleting, setDeleting] = useState<string | null>(null);
 
   const fetchProducts = useCallback(async () => {
     if (!FEATURES.products) {
@@ -45,17 +127,13 @@ export default function ProductsPage() {
     setLoading(true);
     setError(null);
     try {
-      const res = await api.get<{ products: Product[] }>(
-        "/shop-admin/products"
-      );
+      const res = await api.get<{ products: Product[] }>("/shop-admin/products");
       setProducts(res.products || []);
     } catch (err) {
       if (err instanceof ApiError && err.status === 404) {
         setError("Fitur katalog produk belum tersedia di server.");
       } else {
-        setError(
-          err instanceof Error ? err.message : "Gagal memuat daftar produk."
-        );
+        setError(err instanceof Error ? err.message : "Gagal memuat daftar produk.");
       }
     } finally {
       setLoading(false);
@@ -71,9 +149,7 @@ export default function ProductsPage() {
   }, []);
 
   const updateLocal = useCallback((id: string, patch: Partial<Product>) => {
-    setProducts((prev) =>
-      prev.map((p) => (p.id === id ? { ...p, ...patch } : p))
-    );
+    setProducts((prev) => prev.map((p) => (p.id === id ? { ...p, ...patch } : p)));
   }, []);
 
   const removeLocal = useCallback((id: string) => {
@@ -81,16 +157,12 @@ export default function ProductsPage() {
   }, []);
 
   const categories = useMemo(
-    () =>
-      Array.from(new Set(products.map((p) => p.category).filter(Boolean))),
+    () => Array.from(new Set(products.map((p) => p.category).filter(Boolean))),
     [products]
   );
 
   const filtered = useMemo(
-    () =>
-      products.filter(
-        (p) => filterCategory === "all" || p.category === filterCategory
-      ),
+    () => products.filter((p) => filterCategory === "all" || p.category === filterCategory),
     [products, filterCategory]
   );
 
@@ -106,7 +178,6 @@ export default function ProductsPage() {
 
   const handleDelete = async (id: string) => {
     if (!confirm("Yakin ingin menghapus produk ini?")) return;
-    setDeleting(id);
     try {
       if (!FEATURES.products) {
         deleteProduct(id);
@@ -116,13 +187,19 @@ export default function ProductsPage() {
         removeLocal(id);
       }
     } catch (err) {
-      alert(
-        err instanceof ApiError ? err.message : "Gagal menghapus produk."
-      );
-    } finally {
-      setDeleting(null);
+      alert(err instanceof ApiError ? err.message : "Gagal menghapus produk.");
     }
   };
+
+  const enrichedData = useMemo(
+    (): ProductRow[] =>
+      filtered.map((p) => ({
+        ...p,
+        _onEdit: handleEdit,
+        _onDelete: handleDelete,
+      })),
+    [filtered]
+  );
 
   return (
     <div className="space-y-6">
@@ -179,107 +256,19 @@ export default function ProductsPage() {
         </div>
       )}
 
-      <div className="glass-card rounded-2xl">
-        {loading ? (
-          <div className="flex items-center justify-center p-12">
-            <div className="h-6 w-6 animate-spin rounded-full border-2 border-muted border-t-primary" />
-          </div>
-        ) : filtered.length === 0 ? (
-          <div className="p-12 text-center">
-            <p className="font-semibold text-foreground">
+      <div className="glass-card rounded-2xl overflow-hidden p-0">
+        <DataTable
+          columns={columns}
+          data={enrichedData}
+          loading={loading}
+          initialSorting={[{ id: "name", desc: false }]}
+          pageSize={10}
+          emptyState={
+            <p className="text-sm text-muted-foreground">
               {error ? "Belum ada data." : "Belum ada produk."}
             </p>
-            {!error && (
-              <p className="mt-1 text-sm text-muted-foreground">
-                Klik &quot;Tambah Produk&quot; untuk mulai menambahkan produk ke katalog.
-              </p>
-            )}
-          </div>
-        ) : (
-          <Table>
-            <TableHeader>
-              <TableRow className="border-b">
-                <TableHead className="py-4">Nama</TableHead>
-                <TableHead className="py-4">Kategori</TableHead>
-                <TableHead className="py-4 text-right">Harga</TableHead>
-                <TableHead className="py-4 text-right">Stok</TableHead>
-                <TableHead className="py-4">Status</TableHead>
-                <TableHead className="py-4 text-right">Aksi</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filtered.map((product) => (
-                <TableRow key={product.id} className="border-b last:border-b-0 hover:bg-muted/30">
-                  <TableCell className="py-5 font-medium">
-                    <div className="flex items-center gap-2">
-                      {product.image_url ? (
-                        <img
-                          src={product.image_url}
-                          alt={product.name}
-                          className="size-8 rounded object-cover"
-                        />
-                      ) : (
-                        <div className="flex size-8 items-center justify-center rounded bg-muted text-xs text-muted-foreground">
-                          -
-                        </div>
-                      )}
-                      <span>{product.name}</span>
-                    </div>
-                  </TableCell>
-                  <TableCell className="py-5">
-                    {product.category ? (
-                      <Badge variant="outline">{product.category}</Badge>
-                    ) : (
-                      <span className="text-muted-foreground">-</span>
-                    )}
-                  </TableCell>
-                  <TableCell className="py-5 text-right">
-                    {formatRupiah(product.price)}
-                  </TableCell>
-                  <TableCell className="py-5 text-right">
-                    <span
-                      className={
-                        product.stock <= 5
-                          ? "font-semibold text-destructive"
-                          : ""
-                      }
-                    >
-                      {product.stock}
-                    </span>
-                  </TableCell>
-                  <TableCell className="py-5">
-                    {product.is_active ? (
-                      <Badge className="bg-success/15 text-success">
-                        Aktif
-                      </Badge>
-                    ) : (
-                      <Badge variant="secondary">Nonaktif</Badge>
-                    )}
-                  </TableCell>
-                  <TableCell className="py-5 text-right">
-                    <div className="flex justify-end gap-1">
-                      <Button
-                        variant="ghost"
-                        size="icon-sm"
-                        onClick={() => handleEdit(product)}
-                      >
-                        <Pencil className="size-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon-sm"
-                        onClick={() => handleDelete(product.id)}
-                        disabled={deleting === product.id}
-                      >
-                        <Trash2 className="size-4 text-destructive" />
-                      </Button>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        )}
+          }
+        />
       </div>
 
       <ProductFormDialog
