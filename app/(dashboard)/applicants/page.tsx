@@ -101,7 +101,7 @@ function ApplicantsPageInner() {
           </p>
         </div>
       ) : (
-        <div className="space-y-4">
+        <div className="space-y-5">
           {filtered.map((a) => (
             <Link key={a.id} href={`/applicants/${a.id}`}>
               <div className="glass-card glass-card-hover rounded-2xl flex items-center justify-between gap-4 px-5 py-4">
