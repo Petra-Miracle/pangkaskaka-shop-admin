@@ -24,7 +24,7 @@ export function StatusBadge({ status }: { status: ApplicantStatus }) {
   return (
     <span
       className={cn(
-        "inline-flex items-center rounded-full px-2.5 py-1 text-xs font-bold tracking-wide",
+        "inline-flex items-center rounded-full px-2.5 py-1 text-[11px] font-semibold tracking-wide",
         meta.className
       )}
     >

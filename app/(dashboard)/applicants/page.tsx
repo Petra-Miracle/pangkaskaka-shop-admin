@@ -104,23 +104,26 @@ function ApplicantsPageInner() {
         <div className="space-y-3">
           {filtered.map((a) => (
             <Link key={a.id} href={`/applicants/${a.id}`}>
-              <div className="glass-card glass-card-hover rounded-2xl flex items-center justify-between gap-4 p-4">
-                <div className="min-w-0">
-                  <p className="truncate font-bold text-foreground">{a.name}</p>
-                  <p className="truncate text-xs text-muted-foreground">
-                    {shopsById[a.shop_id]?.name || a.shop_id} &middot;{" "}
+              <div className="glass-card glass-card-hover rounded-2xl flex items-center justify-between gap-4 p-5">
+                <div className="min-w-0 space-y-1">
+                  <p className="truncate text-base font-bold text-foreground">
+                    {a.name}
+                  </p>
+                  <p className="truncate text-sm text-muted-foreground">
+                    {shopsById[a.shop_id]?.name || a.shop_id}
+                    <span className="mx-1.5 opacity-40">&middot;</span>
                     {a.email}
                   </p>
-                  <p className="mt-1 text-xs text-muted-foreground">
+                  <p className="text-xs text-muted-foreground/70">
                     Diajukan{" "}
                     {new Date(a.created_at).toLocaleDateString("id-ID", {
                       day: "numeric",
-                      month: "short",
+                      month: "long",
                       year: "numeric",
                     })}
                   </p>
                 </div>
-                <div className="flex shrink-0 flex-col items-end gap-1.5">
+                <div className="flex shrink-0 flex-col items-end gap-2">
                   <StatusBadge status={a.status} />
                   {a.evaluated_at && (
                     <span className="text-xs font-semibold text-muted-foreground">
