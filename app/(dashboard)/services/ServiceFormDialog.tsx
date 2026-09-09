@@ -86,9 +86,10 @@ export function ServiceFormDialog({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
-    try {
-      const payload = { ...form, shop_id: selectedShopId };
 
+    const payload = { ...form, shop_id: selectedShopId };
+
+    try {
       if (!FEATURES.services) {
         if (service) {
           const updated = updateService(service.id, payload);
@@ -102,19 +103,26 @@ export function ServiceFormDialog({
       }
 
       if (service) {
-        const updated = await api.put<Service>(
+        await api.put<{ ok: boolean }>(
           `/shop-admin/services/${service.id}`,
           payload
         );
-        onUpdated?.(service.id, updated);
+        onUpdated?.(service.id, payload);
       } else {
-        const created = await api.post<Service>("/shop-admin/services", payload);
-        onCreated?.(created);
+        const res = await api.post<{ service: Service }>("/shop-admin/services", payload);
+        onCreated?.(res.service);
       }
       onOpenChange(false);
     } catch (err) {
       if (err instanceof ApiError && err.status === 404) {
-        setError("Fitur layanan belum tersedia di server.");
+        if (service) {
+          const updated = updateService(service.id, payload);
+          if (updated) onUpdated?.(service.id, updated);
+        } else {
+          const created = createService(payload);
+          onCreated?.(created);
+        }
+        onOpenChange(false);
       } else {
         setError(
           err instanceof ApiError

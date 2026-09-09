@@ -112,18 +112,19 @@ export function ProductFormDialog({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
-    try {
-      const payload: ProductFormData & { shop_id: string; image_url?: string } = {
-        name,
-        description: description || undefined,
-        price: parseRupiahInput(priceRaw),
-        stock,
-        category: category || undefined,
-        image_url: imagePreview || undefined,
-        is_active: isActive,
-        shop_id: selectedShopId,
-      };
 
+    const payload: ProductFormData & { shop_id: string; image_url?: string } = {
+      name,
+      description: description || undefined,
+      price: parseRupiahInput(priceRaw),
+      stock,
+      category: category || undefined,
+      image_url: imagePreview || undefined,
+      is_active: isActive,
+      shop_id: selectedShopId,
+    };
+
+    try {
       if (!FEATURES.products) {
         if (product) {
           const updated = updateProduct(product.id, payload);
@@ -137,22 +138,29 @@ export function ProductFormDialog({
       }
 
       if (product) {
-        const updated = await api.put<Product>(
+        await api.put<{ ok: boolean }>(
           `/shop-admin/products/${product.id}`,
           payload
         );
-        onUpdated?.(product.id, updated);
+        onUpdated?.(product.id, payload);
       } else {
-        const created = await api.post<Product>(
+        const res = await api.post<{ product: Product }>(
           "/shop-admin/products",
           payload
         );
-        onCreated?.(created);
+        onCreated?.(res.product);
       }
       onOpenChange(false);
     } catch (err) {
       if (err instanceof ApiError && err.status === 404) {
-        setError("Fitur produk belum tersedia di server.");
+        if (product) {
+          const updated = updateProduct(product.id, payload);
+          if (updated) onUpdated?.(product.id, updated);
+        } else {
+          const created = createProduct(payload);
+          onCreated?.(created);
+        }
+        onOpenChange(false);
       } else {
         setError(
           err instanceof ApiError
