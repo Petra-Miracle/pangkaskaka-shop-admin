@@ -101,10 +101,10 @@ function ApplicantsPageInner() {
           </p>
         </div>
       ) : (
-        <div className="space-y-5">
+        <div className="glass-card rounded-2xl divide-y divide-border">
           {filtered.map((a) => (
             <Link key={a.id} href={`/applicants/${a.id}`}>
-              <div className="glass-card glass-card-hover rounded-2xl flex items-center justify-between gap-4 px-5 py-4">
+              <div className="flex items-center justify-between gap-4 px-5 py-4 transition-colors hover:bg-muted/50">
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-[15px] font-bold leading-snug text-foreground">
                     {a.name}
