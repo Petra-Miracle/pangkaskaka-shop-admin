@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { api, ApiError } from "@/lib/api";
+import { FEATURES } from "@/lib/features";
 import { Transaction, RevenueSummary, TransactionType } from "@/lib/types";
 import { PageHeader } from "@/components/nav/page-header";
 import { Button } from "@/components/ui/button";
@@ -27,6 +28,10 @@ export default function RevenuePage() {
   const [endDate, setEndDate] = useState("");
 
   const fetchData = useCallback(async () => {
+    if (!FEATURES.revenue) {
+      setLoading(false);
+      return;
+    }
     if (!selectedShopId) return;
     setLoading(true);
     setError(null);

@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useAuth } from "@/contexts/AuthContext";
 import { useApplicants } from "@/contexts/ApplicantsContext";
 import { api, ApiError } from "@/lib/api";
+import { FEATURES } from "@/lib/features";
 import { ApplicantStatus, Product, Service } from "@/lib/types";
 import { PageHeader } from "@/components/nav/page-header";
 import { Package, Scissors, TrendingUp } from "lucide-react";
@@ -29,17 +30,27 @@ export default function DashboardPage() {
   const managedShopIds = user?.managed_shop_ids || [];
 
   const fetchCounts = useCallback(async () => {
+    if (!FEATURES.products && !FEATURES.services) return;
     try {
-      const [prodRes, svcRes] = await Promise.allSettled([
-        api.get<{ products: Product[] }>("/shop-admin/products"),
-        api.get<{ services: Service[] }>("/shop-admin/services"),
-      ]);
-      if (prodRes.status === "fulfilled")
-        setProductCount((prodRes.value.products || []).length);
-      if (svcRes.status === "fulfilled")
-        setServiceCount((svcRes.value.services || []).length);
+      const promises: Promise<unknown>[] = [];
+      if (FEATURES.products)
+        promises.push(api.get<{ products: Product[] }>("/shop-admin/products"));
+      if (FEATURES.services)
+        promises.push(api.get<{ services: Service[] }>("/shop-admin/services"));
+      const results = await Promise.allSettled(promises);
+      let idx = 0;
+      if (FEATURES.products) {
+        const r = results[idx++];
+        if (r && r.status === "fulfilled")
+          setProductCount((r.value as { products: Product[] }).products?.length ?? 0);
+      }
+      if (FEATURES.services) {
+        const r = results[idx++];
+        if (r && r.status === "fulfilled")
+          setServiceCount((r.value as { services: Service[] }).services?.length ?? 0);
+      }
     } catch {
-      // silently ignore — endpoints may not exist yet
+      // silently ignore
     }
   }, []);
 

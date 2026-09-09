@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { api, ApiError } from "@/lib/api";
+import { FEATURES } from "@/lib/features";
 import { Service } from "@/lib/types";
 import { PageHeader } from "@/components/nav/page-header";
 import { Button } from "@/components/ui/button";
@@ -34,6 +35,10 @@ export default function ServicesPage() {
   const [deleting, setDeleting] = useState<string | null>(null);
 
   const fetchServices = useCallback(async () => {
+    if (!FEATURES.services) {
+      setLoading(false);
+      return;
+    }
     setLoading(true);
     setError(null);
     try {

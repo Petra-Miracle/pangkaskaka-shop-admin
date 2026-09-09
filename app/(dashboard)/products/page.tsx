@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { api, ApiError } from "@/lib/api";
+import { FEATURES } from "@/lib/features";
 import { Product } from "@/lib/types";
 import { PageHeader } from "@/components/nav/page-header";
 import { Button } from "@/components/ui/button";
@@ -35,6 +36,10 @@ export default function ProductsPage() {
   const [deleting, setDeleting] = useState<string | null>(null);
 
   const fetchProducts = useCallback(async () => {
+    if (!FEATURES.products) {
+      setLoading(false);
+      return;
+    }
     setLoading(true);
     setError(null);
     try {
