@@ -25,6 +25,16 @@ interface ServiceFormDialogProps {
   onUpdated?: (id: string, patch: Partial<Service>) => void;
 }
 
+function formatRupiahInput(value: string): string {
+  const digits = value.replace(/\D/g, "");
+  if (!digits) return "";
+  return digits.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+}
+
+function parseRupiahInput(formatted: string): number {
+  return Number(formatted.replace(/\./g, ""));
+}
+
 export function ServiceFormDialog({
   open,
   onOpenChange,
@@ -42,6 +52,17 @@ export function ServiceFormDialog({
     duration_minutes: service?.duration_minutes || 30,
     is_active: service?.is_active ?? true,
   });
+
+  const [priceRaw, setPriceRaw] = useState(
+    service?.price ? String(service.price) : ""
+  );
+  const priceFormatted = formatRupiahInput(priceRaw);
+
+  const handlePriceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const raw = e.target.value.replace(/\D/g, "");
+    setPriceRaw(raw);
+    setForm({ ...form, price: Number(raw) });
+  };
 
   const managedShopIds = user?.managed_shop_ids || [];
   const [selectedShopId, setSelectedShopId] = useState(
@@ -71,6 +92,7 @@ export function ServiceFormDialog({
           duration_minutes: 30,
           is_active: true,
         });
+        setPriceRaw("");
         setLoading(false);
         return;
       }
@@ -93,6 +115,7 @@ export function ServiceFormDialog({
         duration_minutes: 30,
         is_active: true,
       });
+      setPriceRaw("");
     } catch (err) {
       if (err instanceof ApiError && err.status === 404) {
         setError("Fitur layanan belum tersedia di server.");
@@ -169,16 +192,26 @@ export function ServiceFormDialog({
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
               <Label htmlFor="svc-price">Harga (Rp) *</Label>
-              <Input
-                id="svc-price"
-                type="number"
-                min={0}
-                value={form.price}
-                onChange={(e) =>
-                  setForm({ ...form, price: Number(e.target.value) })
-                }
-                required
-              />
+              <div className="relative">
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">
+                  Rp
+                </span>
+                <Input
+                  id="svc-price"
+                  type="text"
+                  inputMode="numeric"
+                  value={priceFormatted}
+                  onChange={handlePriceChange}
+                  placeholder="0"
+                  className="pl-10"
+                  required
+                />
+              </div>
+              {priceFormatted && (
+                <p className="text-xs text-muted-foreground">
+                  = Rp {priceFormatted}
+                </p>
+              )}
             </div>
             <div className="space-y-1.5">
               <Label htmlFor="svc-duration">Durasi (menit)</Label>
