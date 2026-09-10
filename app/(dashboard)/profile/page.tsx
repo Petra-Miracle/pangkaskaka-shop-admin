@@ -194,30 +194,30 @@ export default function ProfilePage() {
 
           {/* Info Rows */}
           <div className="space-y-2.5">
-            <div className="flex items-center justify-between group">
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex items-center gap-2 text-sm text-muted-foreground shrink-0">
                 <Phone className="size-4" />
                 Telepon
               </div>
-              <div className="flex items-center gap-1.5">
-                <span className="text-sm font-medium text-foreground">
+              <div className="flex items-center gap-1.5 min-w-0">
+                <span className="text-sm font-medium text-foreground truncate">
                   {user?.phone || "+62 ---"}
                 </span>
                 <button
                   type="button"
                   onClick={() => setEditPhoneOpen(true)}
-                  className="opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded-md hover:bg-muted text-muted-foreground hover:text-foreground"
+                  className="shrink-0 p-1 rounded-md hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
                 >
                   <Pencil className="size-3" />
                 </button>
               </div>
             </div>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex items-center gap-2 text-sm text-muted-foreground shrink-0">
                 <Calendar className="size-4" />
                 Bergabung
               </div>
-              <span className="text-sm font-medium text-foreground">
+              <span className="text-sm font-medium text-foreground shrink-0">
                 {user?.created_at
                   ? new Date(user.created_at).toLocaleDateString("id-ID", {
                       day: "numeric",
@@ -227,12 +227,12 @@ export default function ProfilePage() {
                   : "-"}
               </span>
             </div>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex items-center gap-2 text-sm text-muted-foreground shrink-0">
                 <Clock className="size-4" />
                 Login terakhir
               </div>
-              <span className="text-sm font-medium text-foreground">
+              <span className="text-sm font-medium text-foreground shrink-0">
                 {user?.last_login
                   ? new Date(user.last_login).toLocaleDateString("id-ID", {
                       day: "numeric",
