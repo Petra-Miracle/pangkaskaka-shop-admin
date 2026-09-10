@@ -55,30 +55,37 @@ export default function ProfilePage() {
     .toUpperCase();
 
   const fetchShopCounts = useCallback(async () => {
+    let allBarbers: Barber[] = [];
+    let allServices: Service[] = [];
+
+    if (FEATURES.barbers) {
+      try {
+        const res = await api.get<{ barbers: Barber[] }>("/shop-admin/barbers");
+        allBarbers = res.barbers || [];
+      } catch {
+        allBarbers = [];
+      }
+    }
+
+    if (FEATURES.services) {
+      try {
+        const res = await api.get<{ services: Service[] }>("/shop-admin/services");
+        allServices = res.services || [];
+      } catch {
+        allServices = [];
+      }
+    }
+
     const counts: Record<string, number> = {};
     const sCounts: Record<string, number> = {};
 
     for (const shopId of managedShopIds) {
-      if (FEATURES.barbers) {
-        try {
-          const res = await api.get<{ barbers: Barber[] }>("/shop-admin/barbers");
-          counts[shopId] = (res.barbers || []).filter(
-            (b) => b.shop_id === shopId && (b.is_active !== false || b.status === "active")
-          ).length;
-        } catch {
-          counts[shopId] = 0;
-        }
-      }
-      if (FEATURES.services) {
-        try {
-          const res = await api.get<{ services: Service[] }>("/shop-admin/services");
-          sCounts[shopId] = (res.services || []).filter(
-            (s) => s.shop_id === shopId
-          ).length;
-        } catch {
-          sCounts[shopId] = 0;
-        }
-      }
+      counts[shopId] = allBarbers.filter(
+        (b) => b.shop_id === shopId && (b.is_active !== false || b.status === "active")
+      ).length;
+      sCounts[shopId] = allServices.filter(
+        (s) => s.shop_id === shopId
+      ).length;
     }
 
     setBarberCount(counts);
@@ -93,6 +100,12 @@ export default function ProfilePage() {
     async (e: React.ChangeEvent<HTMLInputElement>) => {
       const file = e.target.files?.[0];
       if (!file) return;
+
+      if (file.size > 2 * 1024 * 1024) {
+        alert("Ukuran foto maksimal 2MB. Silakan pilih foto yang lebih kecil.");
+        if (fileInputRef.current) fileInputRef.current.value = "";
+        return;
+      }
 
       setUploading(true);
       try {

@@ -1,6 +1,6 @@
 "use client";
 
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
 import { Suspense, useMemo, useState } from "react";
 import { Button, Dropdown, Label } from "@heroui/react";
 import { useAuth } from "@/contexts/AuthContext";
@@ -119,6 +119,7 @@ function FilterItem({ label, isSelected, onSelect }: { label: string; isSelected
 
 function ApplicantsPageInner() {
   const searchParams = useSearchParams();
+  const router = useRouter();
   const { user, shopsById } = useAuth();
   const { applicants, loading, error } = useApplicants();
 
@@ -154,10 +155,12 @@ function ApplicantsPageInner() {
 
       <div className="flex flex-wrap gap-3">
         <Dropdown>
-          <Button variant="outline" className="gap-2 whitespace-nowrap border-primary/30 bg-primary/10 text-primary hover:bg-primary/20">
-            <Filter className="size-4 shrink-0" />
-            {selectedShopLabel}
-          </Button>
+          <Dropdown.Trigger>
+            <Button variant="outline" className="gap-2 whitespace-nowrap border-primary/30 bg-primary/10 text-primary hover:bg-primary/20">
+              <Filter className="size-4 shrink-0" />
+              {selectedShopLabel}
+            </Button>
+          </Dropdown.Trigger>
           <Dropdown.Popover placement="bottom start" className="min-w-[220px]">
             <Dropdown.Menu>
               <FilterItem
@@ -178,10 +181,12 @@ function ApplicantsPageInner() {
         </Dropdown>
 
         <Dropdown>
-          <Button variant="outline" className="gap-2 whitespace-nowrap border-primary/30 bg-primary/10 text-primary hover:bg-primary/20">
-            <Filter className="size-4 shrink-0" />
-            {selectedStatusLabel}
-          </Button>
+          <Dropdown.Trigger>
+            <Button variant="outline" className="gap-2 whitespace-nowrap border-primary/30 bg-primary/10 text-primary hover:bg-primary/20">
+              <Filter className="size-4 shrink-0" />
+              {selectedStatusLabel}
+            </Button>
+          </Dropdown.Trigger>
           <Dropdown.Popover placement="bottom start" className="min-w-[256px]">
             <Dropdown.Menu>
               {STATUS_OPTIONS.map((opt) => (
@@ -211,7 +216,7 @@ function ApplicantsPageInner() {
           initialSorting={[{ id: "created_at", desc: true }]}
           pageSize={10}
           onRowClick={(row) => {
-            window.location.href = `/applicants/${row.id}`;
+            router.push(`/applicants/${row.id}`);
           }}
           emptyState={
             <p className="text-sm text-muted-foreground">
