@@ -28,7 +28,6 @@ import {
   Store,
   ChevronRight,
   ShieldCheck,
-  Pencil,
 } from "lucide-react";
 
 export default function ProfilePage() {
@@ -37,7 +36,6 @@ export default function ProfilePage() {
 
   const [uploading, setUploading] = useState(false);
   const [changePasswordOpen, setChangePasswordOpen] = useState(false);
-  const [editPhoneOpen, setEditPhoneOpen] = useState(false);
 
   const [barberCount, setBarberCount] = useState<Record<string, number>>({});
   const [serviceCount, setServiceCount] = useState<Record<string, number>>({});
@@ -199,18 +197,9 @@ export default function ProfilePage() {
                 <Phone className="size-4" />
                 Telepon
               </div>
-              <div className="flex items-center gap-1.5 min-w-0">
-                <span className="text-sm font-medium text-foreground truncate">
-                  {user?.phone || "+62 ---"}
-                </span>
-                <button
-                  type="button"
-                  onClick={() => setEditPhoneOpen(true)}
-                  className="shrink-0 p-1 rounded-md hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
-                >
-                  <Pencil className="size-3" />
-                </button>
-              </div>
+              <span className="text-sm font-medium text-foreground">
+                {user?.phone || "+62 ---"}
+              </span>
             </div>
             <div className="flex items-center justify-between gap-2">
               <div className="flex items-center gap-2 text-sm text-muted-foreground shrink-0">
@@ -360,12 +349,6 @@ export default function ProfilePage() {
         open={changePasswordOpen}
         onOpenChange={setChangePasswordOpen}
       />
-      <EditPhoneDialog
-        open={editPhoneOpen}
-        onOpenChange={setEditPhoneOpen}
-        currentPhone={user?.phone || ""}
-        onSuccess={refresh}
-      />
     </div>
   );
 }
@@ -462,82 +445,6 @@ function ChangePasswordDialog({
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
               placeholder="Ulangi password baru"
-              required
-            />
-          </div>
-          <DialogFooter>
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-              Batal
-            </Button>
-            <Button type="submit" disabled={submitting}>
-              {submitting ? "Menyimpan..." : "Simpan"}
-            </Button>
-          </DialogFooter>
-        </form>
-      </DialogContent>
-    </Dialog>
-  );
-}
-
-function EditPhoneDialog({
-  open,
-  onOpenChange,
-  currentPhone,
-  onSuccess,
-}: {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  currentPhone: string;
-  onSuccess: () => Promise<void>;
-}) {
-  const [phone, setPhone] = useState(currentPhone);
-  const [error, setError] = useState<string | null>(null);
-  const [submitting, setSubmitting] = useState(false);
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError(null);
-    setSubmitting(true);
-
-    try {
-      await api.put("/auth/profile", { phone });
-      await onSuccess();
-      onOpenChange(false);
-    } catch (err) {
-      setError(
-        err instanceof ApiError
-          ? err.message
-          : "Gagal mengubah nomor telepon. Silakan coba lagi."
-      );
-    } finally {
-      setSubmitting(false);
-    }
-  };
-
-  return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <div className="flex size-8 items-center justify-center rounded-lg bg-primary/10 text-primary">
-              <Phone className="size-4" />
-            </div>
-            Edit Nomor Telepon
-          </DialogTitle>
-        </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          {error && (
-            <div className="rounded-lg bg-destructive/10 px-4 py-3 text-sm text-destructive">
-              {error}
-            </div>
-          )}
-          <div className="space-y-1.5">
-            <Label>Nomor Telepon</Label>
-            <Input
-              type="tel"
-              value={phone}
-              onChange={(e) => setPhone(e.target.value)}
-              placeholder="08xxxxxxxxxx"
               required
             />
           </div>
