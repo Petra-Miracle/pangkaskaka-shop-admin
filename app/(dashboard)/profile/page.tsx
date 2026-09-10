@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useAuth } from "@/contexts/AuthContext";
 import { api, ApiError } from "@/lib/api";
 import { FEATURES } from "@/lib/features";
-import { Barber, Product, Service } from "@/lib/types";
+import { Barber, Service } from "@/lib/types";
 import { PageHeader } from "@/components/nav/page-header";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -21,14 +21,12 @@ import {
   LogOut,
   Camera,
   Lock,
-  Mail,
   Phone,
   Calendar,
   Clock,
   Scissors,
   Store,
   ChevronRight,
-  Plus,
   ShieldCheck,
   Pencil,
 } from "lucide-react";
@@ -39,14 +37,14 @@ export default function ProfilePage() {
 
   const [uploading, setUploading] = useState(false);
   const [changePasswordOpen, setChangePasswordOpen] = useState(false);
-  const [changeEmailOpen, setChangeEmailOpen] = useState(false);
   const [editPhoneOpen, setEditPhoneOpen] = useState(false);
-  const [addShopOpen, setAddShopOpen] = useState(false);
 
   const [barberCount, setBarberCount] = useState<Record<string, number>>({});
   const [serviceCount, setServiceCount] = useState<Record<string, number>>({});
 
   const managedShopIds = user?.managed_shop_ids || [];
+  const shopId = managedShopIds[0];
+  const shop = shopId ? shopsById[shopId] : null;
   const initials = user?.name
     ?.split(" ")
     .map((p) => p[0])
@@ -76,25 +74,22 @@ export default function ProfilePage() {
       }
     }
 
-    const counts: Record<string, number> = {};
-    const sCounts: Record<string, number> = {};
-
-    for (const shopId of managedShopIds) {
-      counts[shopId] = allBarbers.filter(
+    if (shopId) {
+      const bCount = allBarbers.filter(
         (b) => b.shop_id === shopId && (b.is_active !== false || b.status === "active")
       ).length;
-      sCounts[shopId] = allServices.filter(
+      const sCount = allServices.filter(
         (s) => s.shop_id === shopId
       ).length;
-    }
 
-    setBarberCount(counts);
-    setServiceCount(sCounts);
-  }, [managedShopIds]);
+      setBarberCount({ [shopId]: bCount });
+      setServiceCount({ [shopId]: sCount });
+    }
+  }, [shopId]);
 
   useEffect(() => {
-    if (managedShopIds.length > 0) fetchShopCounts();
-  }, [managedShopIds, fetchShopCounts]);
+    if (shopId) fetchShopCounts();
+  }, [shopId, fetchShopCounts]);
 
   const handlePhotoUpload = useCallback(
     async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -255,24 +250,14 @@ export default function ProfilePage() {
           <div className="my-4 h-px bg-gradient-to-r from-transparent via-border to-transparent" />
 
           {/* Action Buttons */}
-          <div className="space-y-1.5">
-            <button
-              type="button"
-              onClick={() => setChangePasswordOpen(true)}
-              className="flex w-full items-center gap-3 rounded-xl border border-border/50 bg-background/50 px-4 py-2.5 text-left text-sm font-medium text-foreground transition-all hover:border-primary/30 hover:bg-primary/5"
-            >
-              <Lock className="size-4 text-muted-foreground" />
-              Ganti password
-            </button>
-            <button
-              type="button"
-              onClick={() => setChangeEmailOpen(true)}
-              className="flex w-full items-center gap-3 rounded-xl border border-border/50 bg-background/50 px-4 py-2.5 text-left text-sm font-medium text-foreground transition-all hover:border-primary/30 hover:bg-primary/5"
-            >
-              <Mail className="size-4 text-muted-foreground" />
-              Ganti email
-            </button>
-          </div>
+          <button
+            type="button"
+            onClick={() => setChangePasswordOpen(true)}
+            className="flex w-full items-center gap-3 rounded-xl border border-border/50 bg-background/50 px-4 py-2.5 text-left text-sm font-medium text-foreground transition-all hover:border-primary/30 hover:bg-primary/5"
+          >
+            <Lock className="size-4 text-muted-foreground" />
+            Ganti password
+          </button>
 
           {/* Divider */}
           <div className="my-4 h-px bg-gradient-to-r from-transparent via-border to-transparent" />
@@ -296,7 +281,7 @@ export default function ProfilePage() {
             </h2>
           </div>
 
-          {managedShopIds.length === 0 ? (
+          {!shopId ? (
             <div className="rounded-xl border border-dashed border-border p-8 text-center">
               <div className="mx-auto mb-3 flex size-12 items-center justify-center rounded-full bg-muted text-muted-foreground">
                 <Store className="size-6" />
@@ -306,85 +291,65 @@ export default function ProfilePage() {
               </p>
             </div>
           ) : (
-            <div className="space-y-3">
-              {managedShopIds.map((shopId) => {
-                const shop = shopsById[shopId];
-                const phone = shop?.phone;
-                const operatingHours = shop?.operating_hours;
-
-                return (
-                  <div key={shopId} className="rounded-2xl border border-border/50 bg-background/30 p-5 transition-all hover:border-primary/30">
-                    {/* Shop Header */}
-                    <div className="flex items-start gap-3 mb-4">
-                      <div className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
-                        <Scissors className="size-5" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2">
-                          <p className="font-bold text-foreground truncate">
-                            {shop?.name || shopId}
-                          </p>
-                          <span className="shrink-0 rounded-full bg-success/15 px-2.5 py-0.5 text-[10px] font-bold text-success">
-                            Buka
-                          </span>
-                        </div>
-                        <p className="mt-0.5 text-sm text-muted-foreground truncate">
-                          {shop?.address || "Alamat belum tersedia"}
-                        </p>
-                      </div>
-                    </div>
-
-                    {/* Stats Grid */}
-                    <div className="grid grid-cols-2 gap-3 mb-4">
-                      <div className="rounded-xl bg-muted/30 p-3">
-                        <p className="text-[11px] font-medium text-muted-foreground mb-1">Jam operasional</p>
-                        <p className="text-sm font-bold text-foreground">
-                          {operatingHours || "09.00 - 21.00"}
-                        </p>
-                      </div>
-                      <div className="rounded-xl bg-muted/30 p-3">
-                        <p className="text-[11px] font-medium text-muted-foreground mb-1">Telepon toko</p>
-                        <p className="text-sm font-bold text-foreground">
-                          {phone || "-"}
-                        </p>
-                      </div>
-                      <div className="rounded-xl bg-muted/30 p-3">
-                        <p className="text-[11px] font-medium text-muted-foreground mb-1">Barber aktif</p>
-                        <p className="text-sm font-bold text-foreground">
-                          {barberCount[shopId] || 0} orang
-                        </p>
-                      </div>
-                      <div className="rounded-xl bg-muted/30 p-3">
-                        <p className="text-[11px] font-medium text-muted-foreground mb-1">Layanan tersedia</p>
-                        <p className="text-sm font-bold text-foreground">
-                          {serviceCount[shopId] || 0} layanan
-                        </p>
-                      </div>
-                    </div>
-
-                    {/* Kelola Toko Button */}
-                    <Link href={`/applicants?shop=${shopId}`}>
-                      <button
-                        type="button"
-                        className="flex w-full items-center justify-center gap-2 rounded-xl border border-border/50 bg-background/50 py-2.5 text-sm font-medium text-foreground transition-all hover:border-primary/30 hover:bg-primary/5"
-                      >
-                        Kelola toko
-                        <ChevronRight className="size-4" />
-                      </button>
-                    </Link>
+            <div className="rounded-2xl border border-border/50 bg-background/30 p-5 transition-all hover:border-primary/30">
+              {/* Shop Header */}
+              <div className="flex items-start gap-3 mb-4">
+                <div className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                  <Scissors className="size-5" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2">
+                    <p className="font-bold text-foreground truncate">
+                      {shop?.name || shopId}
+                    </p>
+                    <span className="shrink-0 rounded-full bg-success/15 px-2.5 py-0.5 text-[10px] font-bold text-success">
+                      Buka
+                    </span>
                   </div>
-                );
-              })}
+                  <p className="mt-0.5 text-sm text-muted-foreground truncate">
+                    {shop?.address || "Alamat belum tersedia"}
+                  </p>
+                </div>
+              </div>
 
-              {/* Add Shop Button */}
-              <button
-                type="button"
-                onClick={() => setAddShopOpen(true)}
-                className="flex w-full items-center justify-center gap-2 rounded-xl border border-dashed border-border py-3 text-sm font-medium text-muted-foreground transition-all hover:border-primary/30 hover:bg-primary/5 hover:text-foreground"
-              >
-                <Plus className="size-4" />
-                Tambah toko
-              </button>
+              {/* Stats Grid */}
+              <div className="grid grid-cols-2 gap-3 mb-4">
+                <div className="rounded-xl bg-muted/30 p-3">
+                  <p className="text-[11px] font-medium text-muted-foreground mb-1">Jam operasional</p>
+                  <p className="text-sm font-bold text-foreground">
+                    {shop?.operating_hours || "09.00 - 21.00"}
+                  </p>
+                </div>
+                <div className="rounded-xl bg-muted/30 p-3">
+                  <p className="text-[11px] font-medium text-muted-foreground mb-1">Telepon toko</p>
+                  <p className="text-sm font-bold text-foreground">
+                    {shop?.phone || "-"}
+                  </p>
+                </div>
+                <div className="rounded-xl bg-muted/30 p-3">
+                  <p className="text-[11px] font-medium text-muted-foreground mb-1">Barber aktif</p>
+                  <p className="text-sm font-bold text-foreground">
+                    {barberCount[shopId] || 0} orang
+                  </p>
+                </div>
+                <div className="rounded-xl bg-muted/30 p-3">
+                  <p className="text-[11px] font-medium text-muted-foreground mb-1">Layanan tersedia</p>
+                  <p className="text-sm font-bold text-foreground">
+                    {serviceCount[shopId] || 0} layanan
+                  </p>
+                </div>
+              </div>
+
+              {/* Lihat Karyawan Button */}
+              <Link href="/barbers">
+                <button
+                  type="button"
+                  className="flex w-full items-center justify-center gap-2 rounded-xl border border-border/50 bg-background/50 py-2.5 text-sm font-medium text-foreground transition-all hover:border-primary/30 hover:bg-primary/5"
+                >
+                  Lihat karyawan
+                  <ChevronRight className="size-4" />
+                </button>
+              </Link>
             </div>
           )}
         </div>
@@ -395,18 +360,12 @@ export default function ProfilePage() {
         open={changePasswordOpen}
         onOpenChange={setChangePasswordOpen}
       />
-      <ChangeEmailDialog
-        open={changeEmailOpen}
-        onOpenChange={setChangeEmailOpen}
-        currentEmail={user?.email || ""}
-      />
       <EditPhoneDialog
         open={editPhoneOpen}
         onOpenChange={setEditPhoneOpen}
         currentPhone={user?.phone || ""}
         onSuccess={refresh}
       />
-      <AddShopDialog open={addShopOpen} onOpenChange={setAddShopOpen} />
     </div>
   );
 }
@@ -520,50 +479,6 @@ function ChangePasswordDialog({
   );
 }
 
-function ChangeEmailDialog({
-  open,
-  onOpenChange,
-  currentEmail,
-}: {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  currentEmail: string;
-}) {
-  return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <div className="flex size-8 items-center justify-center rounded-lg bg-primary/10 text-primary">
-              <Mail className="size-4" />
-            </div>
-            Ganti Email
-          </DialogTitle>
-        </DialogHeader>
-        <div className="space-y-4">
-          <div className="rounded-xl border border-border/50 bg-muted/30 p-4">
-            <p className="text-sm text-muted-foreground">
-              Untuk mengganti email akun, silakan hubungi{" "}
-              <span className="font-semibold text-foreground">Super Admin</span>.
-            </p>
-          </div>
-          <div className="rounded-xl border border-border/50 bg-background/50 p-4">
-            <p className="text-xs font-semibold uppercase text-muted-foreground">
-              Email Saat Ini
-            </p>
-            <p className="mt-1 font-medium text-foreground">{currentEmail}</p>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => onOpenChange(false)}>
-              Tutup
-            </Button>
-          </DialogFooter>
-        </div>
-      </DialogContent>
-    </Dialog>
-  );
-}
-
 function EditPhoneDialog({
   open,
   onOpenChange,
@@ -635,43 +550,6 @@ function EditPhoneDialog({
             </Button>
           </DialogFooter>
         </form>
-      </DialogContent>
-    </Dialog>
-  );
-}
-
-function AddShopDialog({
-  open,
-  onOpenChange,
-}: {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-}) {
-  return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <div className="flex size-8 items-center justify-center rounded-lg bg-primary/10 text-primary">
-              <Plus className="size-4" />
-            </div>
-            Tambah Toko
-          </DialogTitle>
-        </DialogHeader>
-        <div className="space-y-4">
-          <div className="rounded-xl border border-border/50 bg-muted/30 p-4">
-            <p className="text-sm text-muted-foreground">
-              Untuk menambahkan toko baru, silakan hubungi{" "}
-              <span className="font-semibold text-foreground">Super Admin</span>{" "}
-              atau <span className="font-semibold text-foreground">Owner</span> untuk mendaftarkan toko.
-            </p>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => onOpenChange(false)}>
-              Tutup
-            </Button>
-          </DialogFooter>
-        </div>
       </DialogContent>
     </Dialog>
   );
