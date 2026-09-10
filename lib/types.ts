@@ -6,6 +6,9 @@ export interface User {
   email: string;
   role: UserRole;
   photo?: string;
+  phone?: string;
+  created_at?: string;
+  last_login?: string;
   managed_shop_ids?: string[];
 }
 
@@ -51,6 +54,8 @@ export interface Shop {
   address?: string;
   latitude?: number;
   longitude?: number;
+  phone?: string;
+  operating_hours?: string;
   services?: unknown[];
   barbers?: unknown[];
   [key: string]: unknown;
