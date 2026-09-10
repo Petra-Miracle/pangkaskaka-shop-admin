@@ -87,20 +87,20 @@ export default function ProfilePage() {
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         {/* Left: Profile Card */}
-        <div className="glass-card rounded-2xl p-8">
+        <div className="glass-card rounded-2xl p-6">
           {/* Avatar */}
           <div className="flex flex-col items-center">
-            <div className="relative mb-4">
+            <div className="relative mb-3">
               <div className="absolute -inset-1 rounded-full bg-gradient-to-br from-primary/30 to-primary/10 blur-sm" />
               <div className="relative">
                 {user?.photo ? (
                   <img
                     src={user.photo}
                     alt={user.name}
-                    className="size-28 rounded-full object-cover ring-4 ring-background shadow-lg"
+                    className="size-24 rounded-full object-cover ring-4 ring-background shadow-lg"
                   />
                 ) : (
-                  <div className="flex size-28 items-center justify-center rounded-full bg-gradient-to-br from-primary/15 to-primary/5 text-4xl font-bold text-primary ring-4 ring-background shadow-lg">
+                  <div className="flex size-24 items-center justify-center rounded-full bg-gradient-to-br from-primary/15 to-primary/5 text-3xl font-bold text-primary ring-4 ring-background shadow-lg">
                     {initials}
                   </div>
                 )}
@@ -108,12 +108,12 @@ export default function ProfilePage() {
                   type="button"
                   onClick={() => fileInputRef.current?.click()}
                   disabled={uploading}
-                  className="absolute bottom-1 right-1 flex size-9 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg transition-transform hover:scale-110 disabled:opacity-50"
+                  className="absolute bottom-0 right-0 flex size-8 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg transition-transform hover:scale-110 disabled:opacity-50"
                 >
                   {uploading ? (
-                    <div className="size-4 animate-spin rounded-full border-2 border-primary-foreground border-t-transparent" />
+                    <div className="size-3.5 animate-spin rounded-full border-2 border-primary-foreground border-t-transparent" />
                   ) : (
-                    <Camera className="size-4" />
+                    <Camera className="size-3.5" />
                   )}
                 </button>
                 <input
@@ -126,26 +126,26 @@ export default function ProfilePage() {
               </div>
             </div>
 
-            <h3 className="text-xl font-bold text-foreground">
+            <h3 className="text-lg font-bold text-foreground">
               {user?.name}
             </h3>
-            <p className="mt-1 text-sm text-muted-foreground">
+            <p className="text-sm text-muted-foreground">
               {user?.email}
             </p>
 
-            <div className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-primary/10 px-4 py-1.5 text-xs font-semibold text-primary">
+            <div className="mt-2 inline-flex items-center gap-1.5 rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
               <ShieldCheck className="size-3.5" />
               Admin
             </div>
           </div>
 
           {/* Divider */}
-          <div className="my-6 h-px bg-gradient-to-r from-transparent via-border to-transparent" />
+          <div className="my-5 h-px bg-gradient-to-r from-transparent via-border to-transparent" />
 
           {/* Info Rows */}
-          <div className="space-y-4">
+          <div className="space-y-3">
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3 text-sm text-muted-foreground">
+              <div className="flex items-center gap-2.5 text-sm text-muted-foreground">
                 <Phone className="size-4" />
                 Telepon
               </div>
@@ -154,7 +154,7 @@ export default function ProfilePage() {
               </span>
             </div>
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3 text-sm text-muted-foreground">
+              <div className="flex items-center gap-2.5 text-sm text-muted-foreground">
                 <Calendar className="size-4" />
                 Bergabung
               </div>
@@ -169,7 +169,7 @@ export default function ProfilePage() {
               </span>
             </div>
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3 text-sm text-muted-foreground">
+              <div className="flex items-center gap-2.5 text-sm text-muted-foreground">
                 <Clock className="size-4" />
                 Login terakhir
               </div>
@@ -188,40 +188,36 @@ export default function ProfilePage() {
           </div>
 
           {/* Divider */}
-          <div className="my-6 h-px bg-gradient-to-r from-transparent via-border to-transparent" />
+          <div className="my-5 h-px bg-gradient-to-r from-transparent via-border to-transparent" />
 
           {/* Action Buttons */}
           <div className="space-y-2">
             <button
               type="button"
               onClick={() => setChangePasswordOpen(true)}
-              className="flex w-full items-center gap-3 rounded-xl border border-border/50 bg-background/50 px-4 py-3 text-left text-sm font-medium text-foreground transition-all hover:border-primary/30 hover:bg-primary/5"
+              className="flex w-full items-center gap-3 rounded-xl border border-border/50 bg-background/50 px-4 py-2.5 text-left text-sm font-medium text-foreground transition-all hover:border-primary/30 hover:bg-primary/5"
             >
-              <div className="flex size-9 items-center justify-center rounded-lg bg-muted text-muted-foreground transition-colors hover:bg-primary/10 hover:text-primary">
-                <Lock className="size-4" />
-              </div>
+              <Lock className="size-4 text-muted-foreground" />
               Ganti password
             </button>
             <button
               type="button"
               onClick={() => setChangeEmailOpen(true)}
-              className="flex w-full items-center gap-3 rounded-xl border border-border/50 bg-background/50 px-4 py-3 text-left text-sm font-medium text-foreground transition-all hover:border-primary/30 hover:bg-primary/5"
+              className="flex w-full items-center gap-3 rounded-xl border border-border/50 bg-background/50 px-4 py-2.5 text-left text-sm font-medium text-foreground transition-all hover:border-primary/30 hover:bg-primary/5"
             >
-              <div className="flex size-9 items-center justify-center rounded-lg bg-muted text-muted-foreground transition-colors hover:bg-primary/10 hover:text-primary">
-                <Mail className="size-4" />
-              </div>
+              <Mail className="size-4 text-muted-foreground" />
               Ganti email
             </button>
           </div>
 
           {/* Divider */}
-          <div className="my-6 h-px bg-gradient-to-r from-transparent via-border to-transparent" />
+          <div className="my-5 h-px bg-gradient-to-r from-transparent via-border to-transparent" />
 
           {/* Logout */}
           <button
             type="button"
             onClick={logout}
-            className="flex w-full items-center justify-center gap-2 rounded-xl border border-destructive/20 bg-destructive/5 py-3 text-sm font-medium text-destructive transition-all hover:bg-destructive/10 hover:border-destructive/30"
+            className="flex w-full items-center justify-center gap-2 rounded-xl border border-destructive/20 bg-destructive/5 py-2.5 text-sm font-medium text-destructive transition-all hover:bg-destructive/10 hover:border-destructive/30"
           >
             <LogOut className="size-4" />
             Keluar
