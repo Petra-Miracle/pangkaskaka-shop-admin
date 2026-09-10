@@ -85,9 +85,9 @@ export default function ProfilePage() {
         description="Kelola informasi akun dan toko Anda."
       />
 
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-[auto_1fr]">
         {/* Left: Profile Card */}
-        <div className="glass-card rounded-2xl p-6 max-w-sm mx-auto w-full lg:mx-0">
+        <div className="glass-card rounded-2xl p-6 w-full lg:w-[340px]">
           {/* Avatar */}
           <div className="flex flex-col items-center">
             <div className="relative mb-3">
