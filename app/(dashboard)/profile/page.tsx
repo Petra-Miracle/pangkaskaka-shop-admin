@@ -14,7 +14,15 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
-import { LogOut, Camera, Lock, Mail, Save, Upload } from "lucide-react";
+import {
+  LogOut,
+  Camera,
+  Lock,
+  Mail,
+  ShieldCheck,
+  Store,
+  User,
+} from "lucide-react";
 
 export default function ProfilePage() {
   const { user, shopsById, logout, refresh } = useAuth();
@@ -67,111 +75,155 @@ export default function ProfilePage() {
       <PageHeader
         eyebrow="Akun"
         title="Profil"
-        description="Informasi akun Admin dan toko yang dikelola."
+        description="Kelola informasi akun dan keamanan Anda."
       />
 
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-        {/* Left: Account Info */}
-        <div className="glass-card rounded-2xl p-6">
-          <h2 className="mb-4 text-sm font-bold uppercase tracking-wide text-muted-foreground">
-            Informasi Akun
-          </h2>
-
-          {/* Profile Picture */}
-          <div className="flex items-center gap-4">
-            <div className="relative">
-              {user?.photo ? (
-                <img
-                  src={user.photo}
-                  alt={user.name}
-                  className="size-16 rounded-2xl object-cover"
-                />
-              ) : (
-                <div className="flex size-16 items-center justify-center rounded-2xl bg-primary/10 text-2xl font-bold text-primary">
-                  {initials}
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+        {/* Left Column: Profile Card */}
+        <div className="lg:col-span-1">
+          <div className="glass-card rounded-2xl p-6">
+            {/* Avatar */}
+            <div className="flex flex-col items-center text-center">
+              <div className="relative mb-4">
+                <div className="absolute -inset-1 rounded-full bg-gradient-to-br from-primary/40 via-primary/20 to-primary/40 blur-sm" />
+                <div className="relative">
+                  {user?.photo ? (
+                    <img
+                      src={user.photo}
+                      alt={user.name}
+                      className="size-24 rounded-full object-cover ring-4 ring-background"
+                    />
+                  ) : (
+                    <div className="flex size-24 items-center justify-center rounded-full bg-gradient-to-br from-primary/20 to-primary/5 text-3xl font-bold text-primary ring-4 ring-background">
+                      {initials}
+                    </div>
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={uploading}
+                    className="absolute bottom-0 right-0 flex size-8 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg transition-transform hover:scale-110 disabled:opacity-50"
+                  >
+                    {uploading ? (
+                      <div className="size-4 animate-spin rounded-full border-2 border-primary-foreground border-t-transparent" />
+                    ) : (
+                      <Camera className="size-4" />
+                    )}
+                  </button>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={handlePhotoUpload}
+                  />
                 </div>
-              )}
+              </div>
+
+              <h3 className="text-xl font-bold text-foreground">
+                {user?.name}
+              </h3>
+              <p className="mt-1 text-sm text-muted-foreground">
+                {user?.email}
+              </p>
+
+              <div className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
+                <ShieldCheck className="size-3.5" />
+                Admin
+              </div>
+            </div>
+
+            {/* Divider */}
+            <div className="my-6 h-px bg-gradient-to-r from-transparent via-border to-transparent" />
+
+            {/* Action Buttons */}
+            <div className="space-y-2">
               <button
                 type="button"
-                onClick={() => fileInputRef.current?.click()}
-                disabled={uploading}
-                className="absolute -bottom-1 -right-1 flex size-6 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-md hover:bg-primary/90 disabled:opacity-50"
+                onClick={() => setChangePasswordOpen(true)}
+                className="flex w-full items-center gap-3 rounded-xl border border-border/50 bg-background/50 px-4 py-3 text-left text-sm font-medium text-foreground transition-all hover:border-primary/30 hover:bg-primary/5 hover:text-primary"
               >
-                {uploading ? (
-                  <div className="size-3 animate-spin rounded-full border-2 border-primary-foreground border-t-transparent" />
-                ) : (
-                  <Camera className="size-3" />
-                )}
+                <div className="flex size-9 items-center justify-center rounded-lg bg-muted text-muted-foreground transition-colors group-hover:bg-primary/10 group-hover:text-primary">
+                  <Lock className="size-4" />
+                </div>
+                Ganti Password
               </button>
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept="image/*"
-                className="hidden"
-                onChange={handlePhotoUpload}
-              />
+              <button
+                type="button"
+                onClick={() => setChangeEmailOpen(true)}
+                className="flex w-full items-center gap-3 rounded-xl border border-border/50 bg-background/50 px-4 py-3 text-left text-sm font-medium text-foreground transition-all hover:border-primary/30 hover:bg-primary/5 hover:text-primary"
+              >
+                <div className="flex size-9 items-center justify-center rounded-lg bg-muted text-muted-foreground transition-colors group-hover:bg-primary/10 group-hover:text-primary">
+                  <Mail className="size-4" />
+                </div>
+                Ganti Email
+              </button>
             </div>
-            <div>
-              <p className="text-lg font-bold text-foreground">{user?.name}</p>
-              <p className="text-sm text-muted-foreground">{user?.email}</p>
-              <p className="mt-1 text-xs font-semibold text-primary">Admin</p>
-            </div>
-          </div>
 
-          {/* Action Buttons */}
-          <div className="mt-6 flex flex-wrap gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              className="gap-2"
-              onClick={() => setChangePasswordOpen(true)}
-            >
-              <Lock className="size-4" />
-              Ganti Password
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              className="gap-2"
-              onClick={() => setChangeEmailOpen(true)}
-            >
-              <Mail className="size-4" />
-              Ganti Email
-            </Button>
-          </div>
+            {/* Divider */}
+            <div className="my-6 h-px bg-gradient-to-r from-transparent via-border to-transparent" />
 
-          <Button variant="destructive" className="mt-6 gap-2" onClick={logout}>
-            <LogOut className="size-4" />
-            Keluar
-          </Button>
+            {/* Logout */}
+            <button
+              type="button"
+              onClick={logout}
+              className="flex w-full items-center justify-center gap-2 rounded-xl border border-destructive/20 bg-destructive/5 py-2.5 text-sm font-medium text-destructive transition-all hover:bg-destructive/10 hover:border-destructive/30"
+            >
+              <LogOut className="size-4" />
+              Keluar
+            </button>
+          </div>
         </div>
 
-        {/* Right: Shops */}
-        <div className="glass-card rounded-2xl p-6">
-          <h2 className="mb-4 text-sm font-bold uppercase tracking-wide text-muted-foreground">
-            Toko yang Dikelola
-          </h2>
-          {managedShopIds.length === 0 ? (
-            <p className="text-sm text-muted-foreground">
-              Belum ada toko yang di-assign ke akun ini.
-            </p>
-          ) : (
-            <div className="space-y-3">
-              {managedShopIds.map((shopId) => {
-                const shop = shopsById[shopId];
-                return (
-                  <div key={shopId} className="rounded-xl border border-border p-3">
-                    <p className="font-semibold text-foreground">
-                      {shop?.name || shopId}
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      {shop?.address || "Alamat belum tersedia"}
-                    </p>
-                  </div>
-                );
-              })}
+        {/* Right Column: Shop Info */}
+        <div className="lg:col-span-2">
+          <div className="glass-card rounded-2xl p-6">
+            <div className="mb-5 flex items-center gap-2">
+              <div className="flex size-9 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                <Store className="size-4.5" />
+              </div>
+              <h2 className="text-sm font-bold uppercase tracking-wide text-muted-foreground">
+                Toko yang Dikelola
+              </h2>
             </div>
-          )}
+
+            {managedShopIds.length === 0 ? (
+              <div className="rounded-xl border border-dashed border-border p-8 text-center">
+                <div className="mx-auto mb-3 flex size-12 items-center justify-center rounded-full bg-muted text-muted-foreground">
+                  <Store className="size-6" />
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  Belum ada toko yang di-assign ke akun ini.
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {managedShopIds.map((shopId) => {
+                  const shop = shopsById[shopId];
+                  return (
+                    <div
+                      key={shopId}
+                      className="group rounded-xl border border-border/50 bg-background/50 p-4 transition-all hover:border-primary/30 hover:bg-primary/5"
+                    >
+                      <div className="flex items-start gap-3">
+                        <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary transition-colors group-hover:bg-primary group-hover:text-primary-foreground">
+                          <Store className="size-5" />
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <p className="font-semibold text-foreground">
+                            {shop?.name || shopId}
+                          </p>
+                          <p className="mt-0.5 text-sm text-muted-foreground">
+                            {shop?.address || "Alamat belum tersedia"}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
@@ -244,11 +296,16 @@ function ChangePasswordDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Ganti Password</DialogTitle>
+          <DialogTitle className="flex items-center gap-2">
+            <div className="flex size-8 items-center justify-center rounded-lg bg-primary/10 text-primary">
+              <Lock className="size-4" />
+            </div>
+            Ganti Password
+          </DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           {error && (
-            <div className="rounded-md bg-destructive/10 px-3 py-2 text-sm text-destructive">
+            <div className="rounded-lg bg-destructive/10 px-4 py-3 text-sm text-destructive">
               {error}
             </div>
           )}
@@ -258,6 +315,7 @@ function ChangePasswordDialog({
               type="password"
               value={oldPassword}
               onChange={(e) => setOldPassword(e.target.value)}
+              placeholder="Masukkan password lama"
               required
             />
           </div>
@@ -267,6 +325,7 @@ function ChangePasswordDialog({
               type="password"
               value={newPassword}
               onChange={(e) => setNewPassword(e.target.value)}
+              placeholder="Masukkan password baru"
               required
             />
           </div>
@@ -276,6 +335,7 @@ function ChangePasswordDialog({
               type="password"
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
+              placeholder="Ulangi password baru"
               required
             />
           </div>
@@ -310,13 +370,21 @@ function ChangeEmailDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Ganti Email</DialogTitle>
+          <DialogTitle className="flex items-center gap-2">
+            <div className="flex size-8 items-center justify-center rounded-lg bg-primary/10 text-primary">
+              <Mail className="size-4" />
+            </div>
+            Ganti Email
+          </DialogTitle>
         </DialogHeader>
         <div className="space-y-4">
-          <p className="text-sm text-muted-foreground">
-            Untuk mengganti email akun, silakan hubungi Super Admin.
-          </p>
-          <div className="rounded-xl border border-border p-4">
+          <div className="rounded-xl border border-border/50 bg-muted/30 p-4">
+            <p className="text-sm text-muted-foreground">
+              Untuk mengganti email akun, silakan hubungi{" "}
+              <span className="font-semibold text-foreground">Super Admin</span>.
+            </p>
+          </div>
+          <div className="rounded-xl border border-border/50 bg-background/50 p-4">
             <p className="text-xs font-semibold uppercase text-muted-foreground">
               Email Saat Ini
             </p>
