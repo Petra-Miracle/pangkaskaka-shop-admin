@@ -82,14 +82,42 @@ export default function RevenuePage() {
   const handleExport = () => {
     if (transactions.length === 0) return;
 
+    const formatDate = (d: string) =>
+      new Date(d).toLocaleDateString("id-ID", {
+        day: "numeric",
+        month: "long",
+        year: "numeric",
+      });
+
+    const formatDateFile = (d: string) => {
+      const dt = new Date(d);
+      const y = dt.getFullYear();
+      const m = String(dt.getMonth() + 1).padStart(2, "0");
+      const day = String(dt.getDate()).padStart(2, "0");
+      return `${y}-${m}-${day}`;
+    };
+
     const dateLabel =
-      startDate && endDate
-        ? `${new Date(startDate).toLocaleDateString("id-ID")} — ${new Date(endDate).toLocaleDateString("id-ID")}`
-        : startDate
-          ? `${new Date(startDate).toLocaleDateString("id-ID")} — Sekarang`
-          : endDate
-            ? `Semua — ${new Date(endDate).toLocaleDateString("id-ID")}`
-            : "Semua Periode";
+      startDate && endDate && startDate === endDate
+        ? formatDate(startDate)
+        : startDate && endDate
+          ? `${formatDate(startDate)} - ${formatDate(endDate)}`
+          : startDate
+            ? `${formatDate(startDate)} - Sekarang`
+            : endDate
+              ? `Sampai ${formatDate(endDate)}`
+              : "Semua Periode";
+
+    const fileNameDate =
+      startDate && endDate && startDate === endDate
+        ? formatDateFile(startDate)
+        : startDate && endDate
+          ? `${formatDateFile(startDate)}_sd_${formatDateFile(endDate)}`
+          : startDate
+            ? `${formatDateFile(startDate)}_sd_sekarang`
+            : endDate
+              ? `sd_${formatDateFile(endDate)}`
+              : "semua";
 
     const filterLabel =
       filterType === "income"
@@ -99,6 +127,7 @@ export default function RevenuePage() {
           : "Semua";
 
     const shopName = shopsById[selectedShopId]?.name || selectedShopId;
+    const shopNameFile = shopName.replace(/\s+/g, "_");
 
     const txHeaderRow = 17;
     const txStartRow = 18;
@@ -154,9 +183,6 @@ export default function RevenuePage() {
       { s: { r: 15, c: 0 }, e: { r: 15, c: 5 } },  // DATA TRANSAKSI
     ];
 
-    // Freeze header row of transaction table
-    ws["!freeze"] = { xSplit: 0, ySplit: txHeaderRow };
-
     // Style definitions
     const thinBorder = {
       top: { style: "thin" as const, color: { rgb: "000000" } },
@@ -165,11 +191,11 @@ export default function RevenuePage() {
       right: { style: "thin" as const, color: { rgb: "000000" } },
     };
 
-    const headerBg = { rgb: "1E3A5F" };  // Dark blue
-    const sectionBg = { rgb: "E8F0FE" }; // Light blue
-    const greenBg = { rgb: "E6F4EA" };   // Light green
-    const redBg = { rgb: "FDECEA" };     // Light red
-    const blueBg = { rgb: "E3F2FD" };    // Light blue
+    const headerBg = { rgb: "1E3A5F" };
+    const sectionBg = { rgb: "E8F0FE" };
+    const greenBg = { rgb: "E6F4EA" };
+    const redBg = { rgb: "FDECEA" };
+    const blueBg = { rgb: "E3F2FD" };
 
     // Style title row (Row 1)
     const titleCell = ws["A1"];
@@ -248,19 +274,19 @@ export default function RevenuePage() {
       };
     }
 
-    // Style Laba Bersih (Row 13) - Blue
+    // Style Laba Bersih (Row 13) - Blue, larger font
     const labaLabelCell = ws["A13"];
     const labaValueCell = ws["B13"];
     if (labaLabelCell) {
       labaLabelCell.s = {
-        font: { bold: true, color: { rgb: "1A73E8" } },
+        font: { bold: true, sz: 12, color: { rgb: "1A73E8" } },
         fill: { fgColor: blueBg },
         border: thinBorder,
       };
     }
     if (labaValueCell) {
       labaValueCell.s = {
-        font: { bold: true, color: { rgb: "1A73E8" } },
+        font: { bold: true, sz: 12, color: { rgb: "1A73E8" } },
         fill: { fgColor: blueBg },
         border: thinBorder,
         numFmt: "#,##0",
@@ -294,7 +320,6 @@ export default function RevenuePage() {
     // Style transaction data rows
     for (let i = txStartRow; i <= txEndRow; i++) {
       const row = i;
-      // Style all cells in the row with borders
       for (let col = 0; col < 6; col++) {
         const cellRef = XLSX.utils.encode_cell({ r: row, c: col });
         const cell = ws[cellRef];
@@ -333,7 +358,7 @@ export default function RevenuePage() {
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "Revenue");
 
-    const fileName = `Revenue_${shopName}_${startDate || "all"}_${endDate || "all"}.xlsx`;
+    const fileName = `Revenue_${shopNameFile}_${fileNameDate}.xlsx`;
     XLSX.writeFile(wb, fileName);
   };
 
