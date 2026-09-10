@@ -188,6 +188,7 @@ export interface Barber {
   photo_url?: string;
   specialization?: string;
   is_active: boolean;
+  status?: "active" | "inactive";
   created_at: string;
   updated_at: string;
 }

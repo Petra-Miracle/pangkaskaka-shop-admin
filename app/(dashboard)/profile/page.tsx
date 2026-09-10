@@ -1,9 +1,11 @@
 "use client";
 
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useAuth } from "@/contexts/AuthContext";
 import { api, ApiError } from "@/lib/api";
+import { FEATURES } from "@/lib/features";
+import { Barber, Product, Service } from "@/lib/types";
 import { PageHeader } from "@/components/nav/page-header";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -25,10 +27,10 @@ import {
   Clock,
   Scissors,
   Store,
-  MoreHorizontal,
   ChevronRight,
   Plus,
   ShieldCheck,
+  Pencil,
 } from "lucide-react";
 
 export default function ProfilePage() {
@@ -38,6 +40,11 @@ export default function ProfilePage() {
   const [uploading, setUploading] = useState(false);
   const [changePasswordOpen, setChangePasswordOpen] = useState(false);
   const [changeEmailOpen, setChangeEmailOpen] = useState(false);
+  const [editPhoneOpen, setEditPhoneOpen] = useState(false);
+  const [addShopOpen, setAddShopOpen] = useState(false);
+
+  const [barberCount, setBarberCount] = useState<Record<string, number>>({});
+  const [serviceCount, setServiceCount] = useState<Record<string, number>>({});
 
   const managedShopIds = user?.managed_shop_ids || [];
   const initials = user?.name
@@ -46,6 +53,41 @@ export default function ProfilePage() {
     .slice(0, 2)
     .join("")
     .toUpperCase();
+
+  const fetchShopCounts = useCallback(async () => {
+    const counts: Record<string, number> = {};
+    const sCounts: Record<string, number> = {};
+
+    for (const shopId of managedShopIds) {
+      if (FEATURES.barbers) {
+        try {
+          const res = await api.get<{ barbers: Barber[] }>("/shop-admin/barbers");
+          counts[shopId] = (res.barbers || []).filter(
+            (b) => b.shop_id === shopId && (b.is_active !== false || b.status === "active")
+          ).length;
+        } catch {
+          counts[shopId] = 0;
+        }
+      }
+      if (FEATURES.services) {
+        try {
+          const res = await api.get<{ services: Service[] }>("/shop-admin/services");
+          sCounts[shopId] = (res.services || []).filter(
+            (s) => s.shop_id === shopId
+          ).length;
+        } catch {
+          sCounts[shopId] = 0;
+        }
+      }
+    }
+
+    setBarberCount(counts);
+    setServiceCount(sCounts);
+  }, [managedShopIds]);
+
+  useEffect(() => {
+    if (managedShopIds.length > 0) fetchShopCounts();
+  }, [managedShopIds, fetchShopCounts]);
 
   const handlePhotoUpload = useCallback(
     async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -144,14 +186,23 @@ export default function ProfilePage() {
 
           {/* Info Rows */}
           <div className="space-y-2.5">
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between group">
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 <Phone className="size-4" />
                 Telepon
               </div>
-              <span className="text-sm font-medium text-foreground">
-                {user?.phone || "+62 ---"}
-              </span>
+              <div className="flex items-center gap-1.5">
+                <span className="text-sm font-medium text-foreground">
+                  {user?.phone || "+62 ---"}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setEditPhoneOpen(true)}
+                  className="opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded-md hover:bg-muted text-muted-foreground hover:text-foreground"
+                >
+                  <Pencil className="size-3" />
+                </button>
+              </div>
             </div>
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
@@ -230,9 +281,6 @@ export default function ProfilePage() {
             <h2 className="text-sm font-bold uppercase tracking-wide text-muted-foreground">
               Toko yang Dikelola
             </h2>
-            <button className="rounded-lg p-2 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground">
-              <MoreHorizontal className="size-4" />
-            </button>
           </div>
 
           {managedShopIds.length === 0 ? (
@@ -248,8 +296,6 @@ export default function ProfilePage() {
             <div className="space-y-3">
               {managedShopIds.map((shopId) => {
                 const shop = shopsById[shopId];
-                const services = shop?.services;
-                const barbers = shop?.barbers;
                 const phone = shop?.phone;
                 const operatingHours = shop?.operating_hours;
 
@@ -292,13 +338,13 @@ export default function ProfilePage() {
                       <div className="rounded-xl bg-muted/30 p-3">
                         <p className="text-[11px] font-medium text-muted-foreground mb-1">Barber aktif</p>
                         <p className="text-sm font-bold text-foreground">
-                          {barbers?.length || 0} orang
+                          {barberCount[shopId] || 0} orang
                         </p>
                       </div>
                       <div className="rounded-xl bg-muted/30 p-3">
                         <p className="text-[11px] font-medium text-muted-foreground mb-1">Layanan tersedia</p>
                         <p className="text-sm font-bold text-foreground">
-                          {services?.length || 0} layanan
+                          {serviceCount[shopId] || 0} layanan
                         </p>
                       </div>
                     </div>
@@ -320,6 +366,7 @@ export default function ProfilePage() {
               {/* Add Shop Button */}
               <button
                 type="button"
+                onClick={() => setAddShopOpen(true)}
                 className="flex w-full items-center justify-center gap-2 rounded-xl border border-dashed border-border py-3 text-sm font-medium text-muted-foreground transition-all hover:border-primary/30 hover:bg-primary/5 hover:text-foreground"
               >
                 <Plus className="size-4" />
@@ -330,18 +377,23 @@ export default function ProfilePage() {
         </div>
       </div>
 
-      {/* Change Password Dialog */}
+      {/* Dialogs */}
       <ChangePasswordDialog
         open={changePasswordOpen}
         onOpenChange={setChangePasswordOpen}
       />
-
-      {/* Change Email Dialog */}
       <ChangeEmailDialog
         open={changeEmailOpen}
         onOpenChange={setChangeEmailOpen}
         currentEmail={user?.email || ""}
       />
+      <EditPhoneDialog
+        open={editPhoneOpen}
+        onOpenChange={setEditPhoneOpen}
+        currentPhone={user?.phone || ""}
+        onSuccess={refresh}
+      />
+      <AddShopDialog open={addShopOpen} onOpenChange={setAddShopOpen} />
     </div>
   );
 }
@@ -367,7 +419,6 @@ function ChangePasswordDialog({
       setError("Password baru tidak cocok.");
       return;
     }
-
     if (newPassword.length < 6) {
       setError("Password baru minimal 6 karakter.");
       return;
@@ -443,11 +494,7 @@ function ChangePasswordDialog({
             />
           </div>
           <DialogFooter>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => onOpenChange(false)}
-            >
+            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
               Batal
             </Button>
             <Button type="submit" disabled={submitting}>
@@ -492,6 +539,119 @@ function ChangeEmailDialog({
               Email Saat Ini
             </p>
             <p className="mt-1 font-medium text-foreground">{currentEmail}</p>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => onOpenChange(false)}>
+              Tutup
+            </Button>
+          </DialogFooter>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function EditPhoneDialog({
+  open,
+  onOpenChange,
+  currentPhone,
+  onSuccess,
+}: {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  currentPhone: string;
+  onSuccess: () => Promise<void>;
+}) {
+  const [phone, setPhone] = useState(currentPhone);
+  const [error, setError] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError(null);
+    setSubmitting(true);
+
+    try {
+      await api.put("/auth/profile", { phone });
+      await onSuccess();
+      onOpenChange(false);
+    } catch (err) {
+      setError(
+        err instanceof ApiError
+          ? err.message
+          : "Gagal mengubah nomor telepon. Silakan coba lagi."
+      );
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <div className="flex size-8 items-center justify-center rounded-lg bg-primary/10 text-primary">
+              <Phone className="size-4" />
+            </div>
+            Edit Nomor Telepon
+          </DialogTitle>
+        </DialogHeader>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          {error && (
+            <div className="rounded-lg bg-destructive/10 px-4 py-3 text-sm text-destructive">
+              {error}
+            </div>
+          )}
+          <div className="space-y-1.5">
+            <Label>Nomor Telepon</Label>
+            <Input
+              type="tel"
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+              placeholder="08xxxxxxxxxx"
+              required
+            />
+          </div>
+          <DialogFooter>
+            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+              Batal
+            </Button>
+            <Button type="submit" disabled={submitting}>
+              {submitting ? "Menyimpan..." : "Simpan"}
+            </Button>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function AddShopDialog({
+  open,
+  onOpenChange,
+}: {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+}) {
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <div className="flex size-8 items-center justify-center rounded-lg bg-primary/10 text-primary">
+              <Plus className="size-4" />
+            </div>
+            Tambah Toko
+          </DialogTitle>
+        </DialogHeader>
+        <div className="space-y-4">
+          <div className="rounded-xl border border-border/50 bg-muted/30 p-4">
+            <p className="text-sm text-muted-foreground">
+              Untuk menambahkan toko baru, silakan hubungi{" "}
+              <span className="font-semibold text-foreground">Super Admin</span>{" "}
+              atau <span className="font-semibold text-foreground">Owner</span> untuk mendaftarkan toko.
+            </p>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => onOpenChange(false)}>
