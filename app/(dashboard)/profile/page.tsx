@@ -87,7 +87,7 @@ export default function ProfilePage() {
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         {/* Left: Profile Card */}
-        <div className="glass-card rounded-2xl p-6">
+        <div className="glass-card rounded-2xl p-6 max-w-sm mx-auto w-full lg:mx-0">
           {/* Avatar */}
           <div className="flex flex-col items-center">
             <div className="relative mb-3">
