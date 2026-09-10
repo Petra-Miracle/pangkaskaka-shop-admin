@@ -140,12 +140,12 @@ export default function ProfilePage() {
           </div>
 
           {/* Divider */}
-          <div className="my-5 h-px bg-gradient-to-r from-transparent via-border to-transparent" />
+          <div className="my-4 h-px bg-gradient-to-r from-transparent via-border to-transparent" />
 
           {/* Info Rows */}
-          <div className="space-y-3">
+          <div className="space-y-2.5">
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2.5 text-sm text-muted-foreground">
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 <Phone className="size-4" />
                 Telepon
               </div>
@@ -154,7 +154,7 @@ export default function ProfilePage() {
               </span>
             </div>
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2.5 text-sm text-muted-foreground">
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 <Calendar className="size-4" />
                 Bergabung
               </div>
@@ -169,7 +169,7 @@ export default function ProfilePage() {
               </span>
             </div>
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2.5 text-sm text-muted-foreground">
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 <Clock className="size-4" />
                 Login terakhir
               </div>
@@ -188,10 +188,10 @@ export default function ProfilePage() {
           </div>
 
           {/* Divider */}
-          <div className="my-5 h-px bg-gradient-to-r from-transparent via-border to-transparent" />
+          <div className="my-4 h-px bg-gradient-to-r from-transparent via-border to-transparent" />
 
           {/* Action Buttons */}
-          <div className="space-y-2">
+          <div className="space-y-1.5">
             <button
               type="button"
               onClick={() => setChangePasswordOpen(true)}
@@ -211,7 +211,7 @@ export default function ProfilePage() {
           </div>
 
           {/* Divider */}
-          <div className="my-5 h-px bg-gradient-to-r from-transparent via-border to-transparent" />
+          <div className="my-4 h-px bg-gradient-to-r from-transparent via-border to-transparent" />
 
           {/* Logout */}
           <button
