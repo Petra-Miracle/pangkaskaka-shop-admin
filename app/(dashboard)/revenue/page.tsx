@@ -7,7 +7,6 @@ import { FEATURES } from "@/lib/features";
 import { Transaction, RevenueSummary, TransactionType } from "@/lib/types";
 import { PageHeader } from "@/components/nav/page-header";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RevenueSummaryCards } from "./RevenueSummaryCards";
 import { RevenueTable } from "./RevenueTable";
@@ -144,8 +143,8 @@ export default function RevenuePage() {
       ["RINGKASAN KEUANGAN"],                                             // Row 8
       [""],                                                                // Row 9
       ["Keterangan", "Jumlah"],                                           // Row 10
-      ["Total Pendapatan (Pemasukan)", { f: `SUMIF(D${txHeaderRow}:D${txEndRow},"Pendapatan",E${txHeaderRow}:E${txEndRow})` }],  // Row 11
-      ["Total Pengeluaran (Pengeluaran)", { f: `SUMIF(D${txHeaderRow}:D${txEndRow},"Pengeluaran",E${txHeaderRow}:E${txEndRow})` }],  // Row 12
+      ["Total Pendapatan", { f: `SUMIF(D${txHeaderRow}:D${txEndRow},"Pendapatan",E${txHeaderRow}:E${txEndRow})` }],  // Row 11
+      ["Total Pengeluaran", { f: `SUMIF(D${txHeaderRow}:D${txEndRow},"Pengeluaran",E${txHeaderRow}:E${txEndRow})` }],  // Row 12
       ["Laba Bersih", { f: `B11-B12` }],                                  // Row 13
       [""],                                                                // Row 14
       [""],                                                                // Row 15
@@ -166,14 +165,14 @@ export default function RevenuePage() {
 
     const ws = XLSX.utils.aoa_to_sheet(rows);
 
-    // Auto-fit column widths
+    // Column widths: proportional and compact
     const colWidths = [
-      { wch: 38 },  // A: Keterangan/Tanggal
-      { wch: 35 },  // B: Jumlah/Deskripsi
-      { wch: 15 },  // C: Kategori
-      { wch: 14 },  // D: Tipe
-      { wch: 18 },  // E: Jumlah (Rp)
-      { wch: 15 },  // F: Dicatat Oleh
+      { wch: 16 },  // A: Tanggal / Keterangan (Total Pendapatan = 16)
+      { wch: 38 },  // B: Deskripsi / Jumlah
+      { wch: 12 },  // C: Kategori (Layanan)
+      { wch: 14 },  // D: Tipe (Pendapatan)
+      { wch: 16 },  // E: Jumlah (Rp 76.500)
+      { wch: 14 },  // F: Dicatat Oleh (streetbarber)
     ];
     ws["!cols"] = colWidths;
 
@@ -391,21 +390,21 @@ export default function RevenuePage() {
 
           <div className="space-y-1.5">
             <Label className="text-xs">Dari Tanggal</Label>
-            <Input
+            <input
               type="date"
               value={startDate}
               onChange={(e) => setStartDate(e.target.value)}
-              className="w-[160px]"
+              className="flex h-9 w-[160px] rounded-lg border border-input bg-transparent px-2.5 py-1 text-sm transition-colors outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 md:text-sm"
             />
           </div>
 
           <div className="space-y-1.5">
             <Label className="text-xs">Sampai Tanggal</Label>
-            <Input
+            <input
               type="date"
               value={endDate}
               onChange={(e) => setEndDate(e.target.value)}
-              className="w-[160px]"
+              className="flex h-9 w-[160px] rounded-lg border border-input bg-transparent px-2.5 py-1 text-sm transition-colors outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 md:text-sm"
             />
           </div>
 
