@@ -182,6 +182,9 @@ export default function RevenuePage() {
       { s: { r: 11, c: 0 }, e: { r: 11, c: 5 } },  // DATA TRANSAKSI (Row 12) A:F
     ];
 
+    // Freeze panes: freeze above row 13 (txHeaderRow) so headers stay visible on scroll
+    ws["!views"] = [{ state: "frozen", ySplit: txHeaderRow }];
+
     // Style definitions
     const thinBorder = {
       top: { style: "thin" as const, color: { rgb: "000000" } },
