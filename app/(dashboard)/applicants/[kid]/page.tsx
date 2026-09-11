@@ -3,13 +3,13 @@
 import { use } from "react";
 import Link from "next/link";
 import { useAuth } from "@/contexts/AuthContext";
-import { useApplicants } from "@/contexts/ApplicantsContext";
+import { useApplicants, ApplicantsProvider } from "@/contexts/ApplicantsContext";
 import { StatusBadge } from "@/components/StatusBadge";
 import BerkasReview from "./BerkasReview";
 import EvaluationPanel from "./EvaluationPanel";
 import ChatPanel from "./ChatPanel";
 
-export default function ApplicantDetailPage({
+function ApplicantDetailContent({
   params,
 }: {
   params: Promise<{ kid: string }>;
@@ -85,5 +85,17 @@ export default function ApplicantDetailPage({
         <ChatPanel applicant={applicant} />
       </div>
     </div>
+  );
+}
+
+export default function ApplicantDetailPage({
+  params,
+}: {
+  params: Promise<{ kid: string }>;
+}) {
+  return (
+    <ApplicantsProvider>
+      <ApplicantDetailContent params={params} />
+    </ApplicantsProvider>
   );
 }

@@ -4,7 +4,7 @@ import { useSearchParams, useRouter } from "next/navigation";
 import { Suspense, useMemo, useState } from "react";
 import { Button, Dropdown, Label } from "@heroui/react";
 import { useAuth } from "@/contexts/AuthContext";
-import { useApplicants } from "@/contexts/ApplicantsContext";
+import { useApplicants, ApplicantsProvider } from "@/contexts/ApplicantsContext";
 import { ApplicantStatus, KaryawanApplication } from "@/lib/types";
 import { formatRelativeTime } from "@/lib/utils";
 import { PageHeader } from "@/components/nav/page-header";
@@ -98,9 +98,11 @@ function makeColumns(
 
 export default function ApplicantsPage() {
   return (
-    <Suspense fallback={null}>
-      <ApplicantsPageInner />
-    </Suspense>
+    <ApplicantsProvider>
+      <Suspense fallback={null}>
+        <ApplicantsPageInner />
+      </Suspense>
+    </ApplicantsProvider>
   );
 }
 

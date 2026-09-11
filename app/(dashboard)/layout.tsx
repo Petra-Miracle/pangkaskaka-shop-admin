@@ -3,7 +3,6 @@
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
-import { ApplicantsProvider } from "@/contexts/ApplicantsContext";
 import { Sidebar } from "@/components/nav/sidebar";
 import { Topbar } from "@/components/nav/topbar";
 import { MobileNav } from "@/components/nav/mobile-nav";
@@ -35,17 +34,15 @@ export default function DashboardLayout({
   }
 
   return (
-    <ApplicantsProvider>
-      <div className="bg-gradient-mesh relative flex min-h-screen">
-        <Sidebar />
-        <div className="flex min-w-0 flex-1 flex-col">
-          <Topbar />
-          <MobileNav />
-          <main className="w-full flex-1 overflow-y-auto p-4 pb-28 md:p-6 md:pb-6">
-            <div className="mx-auto w-full max-w-[1440px]">{children}</div>
-          </main>
-        </div>
+    <div className="bg-gradient-mesh relative flex min-h-screen">
+      <Sidebar />
+      <div className="flex min-w-0 flex-1 flex-col">
+        <Topbar />
+        <MobileNav />
+        <main className="w-full flex-1 overflow-y-auto p-4 pb-28 md:p-6 md:pb-6">
+          <div className="mx-auto w-full max-w-[1440px]">{children}</div>
+        </main>
       </div>
-    </ApplicantsProvider>
+    </div>
   );
 }

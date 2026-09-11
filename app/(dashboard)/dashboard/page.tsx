@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { useAuth } from "@/contexts/AuthContext";
-import { useApplicants } from "@/contexts/ApplicantsContext";
+import { useApplicants, ApplicantsProvider } from "@/contexts/ApplicantsContext";
 import { api, ApiError } from "@/lib/api";
 import { FEATURES } from "@/lib/features";
 import { ApplicantStatus, Product, Service } from "@/lib/types";
@@ -22,7 +22,7 @@ const SUMMARY_STATUSES: { status: ApplicantStatus[]; label: string; color: strin
   { status: ["rejected"], label: "Ditolak", color: "var(--color-error)" },
 ];
 
-export default function DashboardPage() {
+function DashboardContent() {
   const { user, shopsById } = useAuth();
   const { applicants, loading, error } = useApplicants();
   const [productCount, setProductCount] = useState(0);
@@ -197,5 +197,13 @@ export default function DashboardPage() {
         )}
       </div>
     </div>
+  );
+}
+
+export default function DashboardPage() {
+  return (
+    <ApplicantsProvider>
+      <DashboardContent />
+    </ApplicantsProvider>
   );
 }
