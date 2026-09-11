@@ -128,8 +128,8 @@ export default function RevenuePage() {
     const shopName = shopsById[selectedShopId]?.name || selectedShopId;
     const shopNameFile = shopName.replace(/\s+/g, "_");
 
-    const txHeaderRow = 12;
-    const txStartRow = 13;
+    const txHeaderRow = 13;
+    const txStartRow = 14;
     const txEndRow = txStartRow + transactions.length - 1;
 
     const rows: (string | number | { f: string })[][] = [
@@ -137,14 +137,15 @@ export default function RevenuePage() {
       ["Toko", shopName],                                                 // Row 2
       ["Periode", dateLabel],                                             // Row 3
       ["Filter", filterLabel],                                            // Row 4
-      ["RINGKASAN KEUANGAN"],                                             // Row 5
-      ["Keterangan", "Jumlah"],                                           // Row 6
-      ["Total Pendapatan", { f: `SUMIF(D${txHeaderRow}:D${txEndRow},"Pendapatan",E${txHeaderRow}:E${txEndRow})` }],  // Row 7
-      ["Total Pengeluaran", { f: `SUMIF(D${txHeaderRow}:D${txEndRow},"Pengeluaran",E${txHeaderRow}:E${txEndRow})` }],  // Row 8
-      ["Laba Bersih", { f: `B7-B8` }],                                   // Row 9
-      [""],                                                                // Row 10 (spacer between sections)
-      ["DATA TRANSAKSI"],                                                 // Row 11
-      ["Tanggal", "Deskripsi", "Kategori", "Tipe", "Jumlah", "Dicatat Oleh"],  // Row 12 (txHeaderRow)
+      [""],                                                                // Row 5 (spacer before RINGKASAN)
+      ["RINGKASAN KEUANGAN"],                                             // Row 6
+      ["Keterangan", "Jumlah"],                                           // Row 7
+      ["Total Pendapatan", { f: `SUMIF(D${txHeaderRow}:D${txEndRow},"Pendapatan",E${txHeaderRow}:E${txEndRow})` }],  // Row 8
+      ["Total Pengeluaran", { f: `SUMIF(D${txHeaderRow}:D${txEndRow},"Pengeluaran",E${txHeaderRow}:E${txEndRow})` }],  // Row 9
+      ["Laba Bersih", { f: `B8-B9` }],                                   // Row 10
+      [""],                                                                // Row 11 (spacer before DATA TRANSAKSI)
+      ["DATA TRANSAKSI"],                                                 // Row 12
+      ["Tanggal", "Deskripsi", "Kategori", "Tipe", "Jumlah", "Dicatat Oleh"],  // Row 13 (txHeaderRow)
     ];
 
     for (const tx of transactions) {
@@ -162,19 +163,23 @@ export default function RevenuePage() {
 
     // Column widths: proportional and compact
     const colWidths = [
-      { wch: 16 },  // A: Tanggal / Keterangan (Total Pendapatan = 16)
+      { wch: 16 },  // A: Tanggal / Keterangan
       { wch: 38 },  // B: Deskripsi / Jumlah
-      { wch: 12 },  // C: Kategori (Layanan)
-      { wch: 14 },  // D: Tipe (Pendapatan)
-      { wch: 16 },  // E: Jumlah (Rp 76.500)
-      { wch: 14 },  // F: Dicatat Oleh (streetbarber)
+      { wch: 12 },  // C: Kategori
+      { wch: 14 },  // D: Tipe
+      { wch: 16 },  // E: Jumlah
+      { wch: 14 },  // F: Dicatat Oleh
     ];
     ws["!cols"] = colWidths;
 
+    // Row heights: consistent ~20pt for all rows
+    const totalRows = txEndRow + 1;
+    ws["!rows"] = Array.from({ length: totalRows }, () => ({ hpt: 20 }));
+
     ws["!merges"] = [
-      { s: { r: 0, c: 0 }, e: { r: 0, c: 5 } },   // Title (Row 1)
-      { s: { r: 4, c: 0 }, e: { r: 4, c: 1 } },   // RINGKASAN KEUANGAN (Row 5)
-      { s: { r: 10, c: 0 }, e: { r: 10, c: 5 } },  // DATA TRANSAKSI (Row 11)
+      { s: { r: 0, c: 0 }, e: { r: 0, c: 5 } },   // Title (Row 1) A:F
+      { s: { r: 5, c: 0 }, e: { r: 5, c: 5 } },   // RINGKASAN KEUANGAN (Row 6) A:F
+      { s: { r: 11, c: 0 }, e: { r: 11, c: 5 } },  // DATA TRANSAKSI (Row 12) A:F
     ];
 
     // Style definitions
@@ -185,36 +190,40 @@ export default function RevenuePage() {
       right: { style: "thin" as const, color: { rgb: "000000" } },
     };
 
-    const headerBg = { rgb: "1E3A5F" };
+    const darkBg = { rgb: "1E3A5F" };
     const sectionBg = { rgb: "E8F0FE" };
     const greenBg = { rgb: "E6F4EA" };
     const redBg = { rgb: "FDECEA" };
     const blueBg = { rgb: "E3F2FD" };
 
-    // Style title row (Row 1)
+    // Shared section header style (dark bg, white, bold, center)
+    const sectionHeaderStyle = {
+      font: { bold: true, sz: 12, color: { rgb: "FFFFFF" } },
+      fill: { fgColor: darkBg },
+      alignment: { horizontal: "center" as const },
+      border: thinBorder,
+    };
+
+    // Style title row (Row 1) - dark bg, white, bold, center
     const titleCell = ws["A1"];
     if (titleCell) {
       titleCell.s = {
         font: { bold: true, sz: 14, color: { rgb: "FFFFFF" } },
-        fill: { fgColor: headerBg },
+        fill: { fgColor: darkBg },
         alignment: { horizontal: "center" },
         border: thinBorder,
       };
     }
 
-    // Style RINGKASAN KEUANGAN header (Row 5)
-    const ringkasanCell = ws["A5"];
+    // Style RINGKASAN KEUANGAN header (Row 6) - dark bg, white, bold, center
+    const ringkasanCell = ws["A6"];
     if (ringkasanCell) {
-      ringkasanCell.s = {
-        font: { bold: true, sz: 12, color: { rgb: "1E3A5F" } },
-        fill: { fgColor: sectionBg },
-        border: thinBorder,
-      };
+      ringkasanCell.s = { ...sectionHeaderStyle };
     }
 
-    // Style Keterangan header (Row 6)
-    const keteranganCell = ws["A6"];
-    const jumlahHeaderCell = ws["B6"];
+    // Style Keterangan header (Row 7)
+    const keteranganCell = ws["A7"];
+    const jumlahHeaderCell = ws["B7"];
     if (keteranganCell) {
       keteranganCell.s = {
         font: { bold: true },
@@ -230,9 +239,9 @@ export default function RevenuePage() {
       };
     }
 
-    // Style Total Pendapatan (Row 7) - Green
-    const pendapatanLabelCell = ws["A7"];
-    const pendapatanValueCell = ws["B7"];
+    // Style Total Pendapatan (Row 8) - Green
+    const pendapatanLabelCell = ws["A8"];
+    const pendapatanValueCell = ws["B8"];
     if (pendapatanLabelCell) {
       pendapatanLabelCell.s = {
         font: { bold: true, color: { rgb: "137333" } },
@@ -249,9 +258,9 @@ export default function RevenuePage() {
       };
     }
 
-    // Style Total Pengeluaran (Row 8) - Red
-    const pengeluaranLabelCell = ws["A8"];
-    const pengeluaranValueCell = ws["B8"];
+    // Style Total Pengeluaran (Row 9) - Red
+    const pengeluaranLabelCell = ws["A9"];
+    const pengeluaranValueCell = ws["B9"];
     if (pengeluaranLabelCell) {
       pengeluaranLabelCell.s = {
         font: { bold: true, color: { rgb: "C5221F" } },
@@ -268,9 +277,9 @@ export default function RevenuePage() {
       };
     }
 
-    // Style Laba Bersih (Row 9) - Blue, larger font
-    const labaLabelCell = ws["A9"];
-    const labaValueCell = ws["B9"];
+    // Style Laba Bersih (Row 10) - Blue, larger font
+    const labaLabelCell = ws["A10"];
+    const labaValueCell = ws["B10"];
     if (labaLabelCell) {
       labaLabelCell.s = {
         font: { bold: true, sz: 12, color: { rgb: "1A73E8" } },
@@ -287,24 +296,20 @@ export default function RevenuePage() {
       };
     }
 
-    // Style DATA TRANSAKSI header (Row 11)
-    const dataHeaderCell = ws["A11"];
+    // Style DATA TRANSAKSI header (Row 12) - dark bg, white, bold, center
+    const dataHeaderCell = ws["A12"];
     if (dataHeaderCell) {
-      dataHeaderCell.s = {
-        font: { bold: true, sz: 12, color: { rgb: "1E3A5F" } },
-        fill: { fgColor: sectionBg },
-        border: thinBorder,
-      };
+      dataHeaderCell.s = { ...sectionHeaderStyle };
     }
 
-    // Style transaction table header (Row 12)
-    const txHeaders = ["A12", "B12", "C12", "D12", "E12", "F12"];
+    // Style transaction table header (Row 13)
+    const txHeaders = ["A13", "B13", "C13", "D13", "E13", "F13"];
     for (const ref of txHeaders) {
       const cell = ws[ref];
       if (cell) {
         cell.s = {
           font: { bold: true, color: { rgb: "FFFFFF" } },
-          fill: { fgColor: headerBg },
+          fill: { fgColor: darkBg },
           border: thinBorder,
           alignment: { horizontal: "center" },
         };
