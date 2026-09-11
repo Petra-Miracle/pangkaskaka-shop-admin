@@ -51,6 +51,7 @@ async function request<T>(path: string, options: RequestOptions = {}): Promise<T
     if (typeof window !== "undefined") {
       window.dispatchEvent(new Event(UNAUTHORIZED_EVENT));
     }
+    throw new ApiError("Sesi telah berakhir. Silakan login kembali.", 401);
   }
 
   let data: unknown = null;
@@ -61,6 +62,9 @@ async function request<T>(path: string, options: RequestOptions = {}): Promise<T
     } catch {
       data = text;
     }
+  } else {
+    // Empty body — return empty object for non-error responses
+    data = {};
   }
 
   if (!res.ok) {
