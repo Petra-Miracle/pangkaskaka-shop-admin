@@ -1,10 +1,35 @@
-# PangkasKAKA Shop Admin Dashboard — System Building Report
+# PangkasKAKA Shop Admin Dashboard — System Building Report (Lengkap)
 
-**Tanggal Update:** 11 September 2026  
+**Periode Pengembangan:** 10 - 11 September 2026  
 **Status:** ✅ Selesai & Production Ready  
 **Repository:** https://github.com/Petra-Miracle/pangkaskaka-shop-admin  
 **Branch:** `main`  
-**Deploy:** https://pangkaskaka-shop-admin.vercel.app
+**Deploy:** https://pangkaskaka-shop-admin.vercel.app  
+**Backend:** https://app-pangkaskaka-production.up.railway.app
+
+---
+
+## DAFTAR ISI
+
+1. [Ringkasan Proyek](#1-ringkasan-proyek)
+2. [Tech Stack](#2-tech-stack)
+3. [Arsitektur Sistem](#3-arsitektur-sistem)
+4. [Struktur Folder](#4-struktur-folder)
+5. [Riwayat Pengembangan](#5-riwayat-pengembangan)
+6. [Halaman dan Fitur](#6-halaman-dan-fitur)
+7. [Autentikasi dan Otorisasi](#7-autentikasi-dan-otorisasi)
+8. [API Integration](#8-api-integration)
+9. [Performance Optimization](#9-performance-optimization)
+10. [Error Handling](#10-error-handling)
+11. [Excel Export Specification](#11-excel-export-specification)
+12. [UI/UX](#12-uiux)
+13. [Testing](#13-testing)
+14. [Deployment](#14-deployment)
+15. [Known Issues](#15-known-issues)
+16. [Commits Lengkap](#16-commits-lengkap)
+17. [Checklist Kesiapan Produksi](#17-checklist-kesiapan-produksi)
+18. [Catatan untuk SuperAdmin](#18-catatan-untuk-superadmin)
+19. [Penutup](#19-penutup)
 
 ---
 
@@ -17,6 +42,10 @@ PangkasKAKA Shop Admin Dashboard adalah aplikasi web untuk mengelola usaha pangk
 - Mengelola produk, layanan, dan karyawan
 - Melihat laporan keuangan (read-only) dengan Excel export
 - Mengelola profil admin
+
+### Target Pengguna
+- **Admin** — Mengelola pelamar StreetBarber, produk, layanan, karyawan
+- **SuperAdmin** — Mengelola akun admin dan toko (backend)
 
 ---
 
@@ -31,7 +60,9 @@ PangkasKAKA Shop Admin Dashboard adalah aplikasi web untuk mengelola usaha pangk
 | State Management | React Context + useState |
 | Auth | JWT (useAuth hook) |
 | Excel Export | xlsx-js-style v1.2.0 |
-| Backend | FastAPI (Python) + MongoDB |
+| Charts | ApexCharts |
+| Icons | Lucide React |
+| Backend | FastAPI (Python) + MongoDB (Motor) |
 | Deploy Frontend | Vercel (sin1 - Singapore) |
 | Deploy Backend | Railway |
 
@@ -50,6 +81,7 @@ PangkasKAKA Shop Admin Dashboard adalah aplikasi web untuk mengelola usaha pangk
 ├─────────────────────────────────────────────────────────────┤
 │  API Layer (lib/api.ts) + Storage (lib/storage.ts)          │
 │  - 401 auto-redirect  - Null-safe responses                 │
+│  - JSON body handling - Network error recovery              │
 └───────────────────────────┬─────────────────────────────────┘
                             │ HTTP/REST + JWT Bearer
                             ▼
@@ -59,6 +91,7 @@ PangkasKAKA Shop Admin Dashboard adalah aplikasi web untuk mengelola usaha pangk
 │  FastAPI + Motor (MongoDB) + JWT Auth                        │
 ├─────────────────────────────────────────────────────────────┤
 │  /api/auth/* │ /api/shop-admin/* │ /api/shops/*              │
+│  Login/Me    │ Products/Services/Barbers/Revenue/Karyawan   │
 └─────────────────────────────────────────────────────────────┘
 ```
 
@@ -106,17 +139,12 @@ pangkaskaka-shop-admin/
 │   │   ├── theme-provider.tsx            # next-themes wrapper
 │   │   └── query-provider.tsx            # TanStack Query wrapper
 │   ├── StatusBadge.tsx                   # Status badge component
-│   └── ui/                               # shadcn/ui primitives
-│       ├── avatar.tsx, badge.tsx, button.tsx, card.tsx
-│       ├── data-table.tsx, dialog.tsx, dropdown-menu.tsx
-│       ├── input.tsx, label.tsx, select.tsx, separator.tsx
-│       ├── skeleton.tsx, sonner.tsx, table.tsx, tabs.tsx
-│       └── textarea.tsx
+│   └── ui/                               # shadcn/ui primitives (16 komponen)
 ├── contexts/
 │   ├── AuthContext.tsx                    # Autentikasi + session
 │   ├── ApplicantsContext.tsx              # Data pelamar
-│   ├── ProductsContext.tsx                # Data produk
-│   └── ServicesContext.tsx                # Data layanan
+│   ├── ProductsContext.tsx                # Data produk (unused, direct API)
+│   └── ServicesContext.tsx                # Data layanan (unused, direct API)
 ├── lib/
 │   ├── api.ts                            # Fetch wrapper (null-safe, 401 handler)
 │   ├── auth.ts                           # Token management (localStorage)
@@ -128,28 +156,149 @@ pangkaskaka-shop-admin/
 │   └── utils.ts                          # Utilities (cn, formatRupiah, etc.)
 ├── public/
 │   └── pangkaskaka-logo.jpeg             # Logo PangkasKAKA
+├── tests/                                # Vitest tests
 ├── SYSTEM_BUILDING_REPORT.md             # Dokumen ini
 └── HANDOFF.md                            # Handoff documentation
 ```
 
 ---
 
-## 5. Halaman dan Fitur
+## 5. Riwayat Pengembangan
 
-### 5.1 Login (`/login`)
+### FASE 1: Inisialisasi & Setup (10 Sep - Pagi)
+| Commit | Deskripsi |
+|--------|-----------|
+| `6e9a56c` | Initial implementation - setup Next.js, login, dashboard, applicants |
+| `9640a0b` | Tambah Vercel deployment config, vitest tests |
+| `bfad2f8` | Pin vite@7 untuk resolve peer dependency |
+| `e795694` | Downgrade vitest ke v4 untuk resolve conflict |
+| `afc4aeb` | Redesign ShopAdmin UI sesuai SuperAdmin dashboard |
+| `901e748` | Align frontend dependencies dengan SuperAdmin |
+| `cedcb55` | Rename Button.tsx/Card.tsx ke lowercase untuk Linux |
+| `ab22c6a` | Fix semua shadcn imports dari 'cn' ke '@/lib/utils' |
+
+### FASE 2: Core Features (10 Sep - Siang)
+| Commit | Deskripsi |
+|--------|-----------|
+| `9e080b6` | Tambah Katalog Produk, Layanan (CRUD), Revenue (read-only) |
+| `4da6574` | Handle 404 gracefully untuk products/services/revenue |
+| `4f41c4f` | Tambah placeholder SVG logo |
+| `bc67d1c` | Ganti placeholder logo dengan PangkasKAKA SVG |
+| `7756f5f` | Tambah feature flags untuk suppress 404 errors |
+| `3999679` | Remove global providers, fetch locally per page |
+| `7063d74` | Tambah image upload dan rupiah-formatted price input |
+| `d7233c9` | Clean up testing alert |
+| `cb13718` | Tambah spesifikasi backend & update HANDOFF.md |
+| `2f12b3f` | Produk & layanan tersimpan ke localStorage (CRUD lengkap) |
+| `afbe149` | Input harga layanan format Rupiah |
+| `a558417` | Aktifkan fitur produk, layanan, revenue (backend sudah siap) |
+
+### FASE 3: UI Improvements (10 Sep - Sore)
+| Commit | Deskripsi |
+|--------|-----------|
+| `a089768` | Rapikan kartu pelamar — badge & skor sejajar |
+| `34eff06` | Perbaiki typografi & spasi kartu pelamar |
+| `dd4a0a4` | Tambah jarak antar kartu pelamar |
+| `1400969` | Perbesar jarak antar kartu pelamar |
+| `9d3f5ac` | Rapikan tabel pelamar jadi satu card |
+| `c6cfeda` | Ubah daftar pelamar jadi tabel dengan kolom rapi |
+| `943f46a` | Perbesar jarak antar baris tabel |
+| `0b45729` | Kembalikan tampilan kartu pelamar |
+| `0378416` | Perbesar padding tabel |
+| `8a2293a` | Tabel DataTable dengan sortir, paginasi, skeleton |
+
+### FASE 4: Dropdown & Navigation (10 Sep - Sore)
+| Commit | Deskripsi |
+|--------|-----------|
+| `644aa24` | Ganti dropdown ke HeroUI Dropdown compound components |
+| `a03d070` | HeroUI Dropdown sesuai dokumentasi |
+| `17d8f7f` | Ganti native select ke HeroUI Dropdown selectionMode single |
+| `e01ce64` | Hapus Section Header dari dropdown filter pelamar |
+| `fe45a6e` | Filter buttons pakai variant primary |
+| `fb15790` | Filter buttons outline + primary/10 bg |
+| `2dbc442` | Tambah whitespace-nowrap + shrink-0 icon |
+| `28be01c` | Filter buttons pakai onAction manual + checkmark ikon |
+| `95065f6` | Ganti logo admin dari SVG ke JPEG dari WhatsApp upload |
+
+### FASE 5: Barbers & CRUD (10 Sep - Malam)
+| Commit | Deskripsi |
+|--------|-----------|
+| `72274c7` | Improve form dialogs, tambah revenue Excel export |
+| `364effd` | Tambah barbers/karyawan management page |
+| `feb6669` | Tambah localStorage fallback untuk barbers |
+| `9aff22c` | Handle backend response format untuk barbers |
+| `6ca4afa` | Tambah batch delete ke products, barbers, services |
+| `3e4d1a1` | Fix pagination state management di DataTable |
+| `928f042` | Fix extract API response correctly |
+| `c6d34e0` | Fix critical dashboard issues - revenue loading, double-submit |
+
+### FASE 6: Excel Export (10 Sep - Malam)
+| Commit | Deskripsi |
+|--------|-----------|
+| `94451c0` | Structured Excel export dengan summary section |
+| `88d9abb` | Excel export dengan SUMIF formulas |
+| `9b39134` | Tambah Total Transaksi dengan COUNTA formula |
+| `843fa1b` | Revert "feat: add Total Transaksi" (caused issues) |
+
+### FASE 7: Profile Page (10 Sep - Malam)
+| Commit | Deskripsi |
+|--------|-----------|
+| `5c52b1f` | Profile page - photo upload, change password |
+| `cf20c42` | Premium profile page design - gradient avatar |
+| `3f3440a` | Premium profile page matching design mockup |
+| `bfccbf2` | Compact profile card - reduce spacing |
+| `9c0ad58` | Tighter spacing on profile card |
+| `f89099d` | Limit profile card width to max-w-sm |
+| `72be5a0` | Reduce gap between profile and shop cards |
+| `93283b2` | Complete profile features - edit phone, add shop dialog |
+| `e3e72fe` | All admin features - dropdown filters, navigation, API calls, photo validation |
+
+### FASE 8: Profile Cleanup (11 Sep - Pagi)
+| Commit | Deskripsi |
+|--------|-----------|
+| `3ed2f55` | Clean profile page - remove ganti email, tambah toko, change to lihat karyawan |
+| `c5cb615` | Rapikan layout telepon di profile page |
+| `54c7f15` | Hilangkan edit nomor telepon di profile |
+| `87be4bd` | Update logo pangkaskaka baru dari WhatsApp |
+| `195dc61` | Update system building report |
+
+### FASE 9: Excel Export Fixes (11 Sep - Siang)
+| Commit | Deskripsi |
+|--------|-----------|
+| `caa97de` | Perbaiki SUMIF formula + tambah styling lengkap |
+| `5b9b280` | Perbaiki nama file, periode, dan styling lengkap |
+| `07f566a` | Ganti xlsx ke xlsx-js-style di package.json (Vercel fix) |
+| `b165e5f` | Ganti Input ke native input untuk date picker |
+| `f8ada66` | Format Rupiah dengan prefix Rp di Excel export |
+| `4da2b93` | Rapatkan empty rows di Excel export |
+| `9ce1824` | Rapikan Excel - section headers dark bg, row heights |
+| `3164ba1` | Tambah freeze pane header tabel transaksi |
+
+### FASE 10: Performance & Error Handling (11 Sep - Sore)
+| Commit | Deskripsi |
+|--------|-----------|
+| `73be4d0` | Perkuat error handling - api null body, 401 fallthrough |
+| `3b094e1` | Pindahkan ApplicantsProvider - navigasi lebih cepat |
+| `90772ac` | Update system building report |
+
+---
+
+## 6. Halaman dan Fitur
+
+### 6.1 Login (`/login`)
 - Email + password form
 - Validasi role harus `admin` (role lain ditolak)
 - Error handling untuk credentials salah
 - Redirect ke `/dashboard` setelah login
 - Logo PangkasKAKA di halaman login
 
-### 5.2 Dashboard (`/dashboard`)
+### 6.2 Dashboard (`/dashboard`)
 - 4 kartu status pelamar (Menunggu Berkas, Tahap Tes, StreetBarber Aktif, Ditolak)
 - Quick link: jumlah produk, jumlah layanan, revenue
 - Daftar toko yang dikelola dengan jumlah pelamar per toko
-- **ApplicantsProvider dibungkus di halaman ini** (tidak di layout)
+- ApplicantsProvider dibungkus di halaman ini (tidak di layout)
 
-### 5.3 Pelamar StreetBarber (`/applicants`)
+### 6.3 Pelamar StreetBarber (`/applicants`)
 - **Daftar:** DataTable dengan filter toko dan status
 - Dropdown filter toko (jika mengelola >1 toko)
 - Dropdown filter status (Pending, Menunggu Tes, Lolos, Dll)
@@ -158,9 +307,9 @@ pangkaskaka-shop-admin/
   - Approve/reject berkas dengan alasan
   - Evaluasi skill (6 kriteria, skor 0-20, total 120, passing 60)
   - Chat dengan pelamar (teks + gambar, polling 4 detik)
-- **ApplicantsProvider dibungkus di halaman ini**
+- ApplicantsProvider dibungkus di halaman ini
 
-### 5.4 Karyawan/Barber (`/barbers`)
+### 6.4 Karyawan/Barber (`/barbers`)
 - **CRUD Operations:**
   - Create: Form dialog (nama, telepon, email, spesialisasi, foto)
   - Read: DataTable dengan status aktif/nonaktif
@@ -168,7 +317,7 @@ pangkaskaka-shop-admin/
   - Delete: Single delete + batch delete (Promise.allSettled)
 - **Backend Mapping:** `status: "active"/"inactive"` → `is_active: boolean`
 
-### 5.5 Produk (`/products`)
+### 6.5 Produk (`/products`)
 - **CRUD Operations:**
   - Create: Form dialog dengan upload gambar (base64, max 2MB)
   - Read: DataTable dengan filter kategori
@@ -179,7 +328,7 @@ pangkaskaka-shop-admin/
   - Stok merah jika ≤ 5
   - Status aktif/nonaktif
 
-### 5.6 Layanan (`/services`)
+### 6.6 Layanan (`/services`)
 - **CRUD Operations:**
   - Create: Form dialog (nama, deskripsi, harga, durasi)
   - Read: DataTable
@@ -189,7 +338,7 @@ pangkaskaka-shop-admin/
   - Format harga Rupiah
   - Durasi dalam menit
 
-### 5.7 Revenue (`/revenue`)
+### 6.7 Revenue (`/revenue`)
 - **Read-only** (admin hanya bisa melihat)
 - **Summary cards:**
   - Total Pendapatan (dari transaksi `income`)
@@ -218,7 +367,7 @@ pangkaskaka-shop-admin/
   - Row height konsisten 20pt
   - Column widths proporsional
 
-### 5.8 Profil (`/profile`)
+### 6.8 Profil (`/profile`)
 - **Kiri:** Foto profil (upload), nama, badge Admin, telepon, bergabung
 - **Kanan:** Info toko (jumlah barber aktif, jumlah layanan)
 - **Aksi:** Ganti password, lihat karyawan (link ke `/barbers`), keluar
@@ -226,7 +375,7 @@ pangkaskaka-shop-admin/
 
 ---
 
-## 6. Autentikasi dan Otorisasi
+## 7. Autentikasi dan Otorisasi
 
 ### Flow Login
 ```
@@ -245,12 +394,17 @@ User Input → POST /api/auth/login → JWT Token → localStorage → AuthConte
 ### Multi-Admin Support
 - Setiap admin login dengan email/password sendiri
 - Token per-user di localStorage
-- `user.mamaged_shop_ids` menentukan toko mana yang di-handle
+- `user.managed_shop_ids` menentukan toko mana yang di-handle
 - Backend filter data berdasarkan token → setiap admin hanya lihat data tokonya
+
+### Session Restore
+- Halaman reload → `bootstrap()` cek token di localStorage
+- Validasi token via `GET /api/auth/me`
+- Jika token invalid → clear token → redirect ke login
 
 ---
 
-## 7. API Integration
+## 8. API Integration
 
 ### Base URL
 ```
@@ -301,12 +455,12 @@ NEXT_PUBLIC_API_URL=https://app-pangkaskaka-production.up.railway.app
 
 ---
 
-## 8. Performance Optimization (Update 11 Sep 2026)
+## 9. Performance Optimization
 
 ### Masalah Sebelumnya
 - `ApplicantsProvider` dibungkus di `app/(dashboard)/layout.tsx`
-- **Efek:** Setiap kali navigasi ke halaman manapun (products, services, barbers, dll), API `/shop-admin/karyawan` dipanggil padahal tidak diperlukan
-- **Hasil:** Klik "Katalog Produk" memicu 2 API call bersamaan (karyawan + products) → terasa lambat
+- **Efek:** Setiap kali navigasi ke halaman manapun, API `/shop-admin/karyawan` dipanggil
+- **Hasil:** Klik "Katalog Produk" memicu 2 API call bersamaan → terasa lambat
 
 ### Solusi
 - `ApplicantsProvider` **dipindahkan** dari `layout.tsx` ke halaman yang membutuhkan saja:
@@ -321,32 +475,31 @@ NEXT_PUBLIC_API_URL=https://app-pangkaskaka-production.up.railway.app
 | Services | 2 (karyawan + services) | 1 (services) |
 | Barbers | 2 (karyawan + barbers) | 1 (barbers) |
 | Revenue | 2 (karyawan + revenue) | 1 (revenue) |
-| Profile | 2 (karyawan + barbers + services) | 1 (barbers + services) |
+| Profile | 2+ (karyawan + barbers + services) | 1-2 (barbers + services) |
 
 ---
 
-## 9. Error Handling (Update 11 Sep 2026)
+## 10. Error Handling
 
 ### API Client (`lib/api.ts`)
 | Kondisi | Sebelum | Sesudah |
 |---------|---------|---------|
-| 401 Unauthorized | Token di-clear, tapi execution fallthrough → caller dapat error + redirect | Throw `ApiError(401)` segera → redirect bersih |
-| Empty body (204) | Return `null` → context crash saat akses `res.karyawan` | Return `{}` → aman untuk destructuring |
-| Network error | Throw ApiError dengan status 0 | Sama (sudah benar) |
+| 401 Unauthorized | Token di-clear, execution fallthrough | Throw `ApiError(401)` segera |
+| Empty body (204) | Return `null` → crash | Return `{}` → aman |
+| Network error | Throw ApiError status 0 | Sama (sudah benar) |
+| Server error (500) | Throw ApiError dengan detail message | Sama |
 
 ### Context Null-Safety
-- `res.karyawan || []` — aman karena api.ts return `{}` untuk empty body
-- `res.products || []` — sama
-- `res.services || []` — sama
+- Semua context menggunakan `res.data || []` atau `res.data || {}`
+- Tidak ada crash saat API return empty body
 
 ---
 
-## 10. Excel Export Specification (Update 11 Sep 2026)
+## 11. Excel Export Specification
 
 ### Library
-- **Sebelum:** `xlsx` (SheetJS)
-- **Sesudah:** `xlsx-js-style` v1.2.0 (support styling)
-- **Important:** `package.json` harus list `xlsx-js-style`, bukan `xlsx`. Vercel install dari `package.json`, bukan local `node_modules`.
+- **Package:** `xlsx-js-style` v1.2.0
+- **Important:** `package.json` harus list `xlsx-js-style`, bukan `xlsx`
 
 ### Struktur Sheet
 
@@ -400,7 +553,7 @@ semua:        Revenue_[Nama_Toko]_semua.xlsx
 
 ---
 
-## 11. UI/UX
+## 12. UI/UX
 
 ### Design System
 - **Theme:** Glass morphism dengan gradients
@@ -427,7 +580,7 @@ semua:        Revenue_[Nama_Toko]_semua.xlsx
 
 ---
 
-## 12. Testing
+## 13. Testing
 
 ### Build Status (11 Sep 2026)
 ```
@@ -466,7 +619,7 @@ GET /profile    → 200 OK ✅
 
 ---
 
-## 13. Deployment
+## 14. Deployment
 
 ### Frontend (Vercel)
 - Auto-deploy dari branch `main`
@@ -481,7 +634,7 @@ GET /profile    → 200 OK ✅
 
 ---
 
-## 14. Known Issues
+## 15. Known Issues
 
 | Issue | Status | Keterangan |
 |-------|--------|------------|
@@ -491,10 +644,12 @@ GET /profile    → 200 OK ✅
 
 ---
 
-## 15. Commits Terakhir (11 Sep 2026)
+## 16. Commits Lengkap
 
+### 11 September 2026 (Hari Ini)
 | Hash | Message |
 |------|---------|
+| `90772ac` | docs: update system building report - 11 September 2026 |
 | `3b094e1` | fix: pindahkan ApplicantsProvider - navigasi lebih cepat tanpa extra API call |
 | `73be4d0` | fix: perkuat error handling - api null body, 401 fallthrough, context null-safety |
 | `3164ba1` | fix: tambah freeze pane header tabel transaksi Excel |
@@ -505,10 +660,84 @@ GET /profile    → 200 OK ✅
 | `07f566a` | fix: ganti xlsx ke xlsx-js-style di package.json - Vercel pakai library ini |
 | `5b9b280` | fix: Excel export - perbaiki nama file, periode, dan styling lengkap |
 | `caa97de` | fix: Excel export - perbaiki SUMIF formula + tambah styling lengkap |
+| `87be4bd` | fix: update logo pangkaskaka baru |
+| `195dc61` | docs: update system building report |
+| `54c7f15` | fix: hilangkan edit nomor telepon di profile |
+| `c5cb615` | fix: rapikan layout telepon di profile page |
+| `3ed2f55` | feat: clean profile page - remove ganti email, tambah toko |
+| `e3e72fe` | fix: all admin features - dropdown filters, navigation, API calls, photo validation |
+
+### 10 September 2026 (Kemarin)
+| Hash | Message |
+|------|---------|
+| `93283b2` | feat: complete profile features - edit phone, add shop dialog |
+| `72be5a0` | fix: reduce gap between profile and shop cards |
+| `f89099d` | fix: limit profile card width to max-w-sm |
+| `9c0ad58` | fix: tighter spacing on profile card |
+| `bfccbf2` | fix: compact profile card |
+| `3f3440a` | feat: premium profile page matching design mockup |
+| `cf20c42` | feat: premium profile page design |
+| `5c52b1f` | feat: profile page - photo upload, change password |
+| `62c2511` | docs: update comprehensive system building report |
+| `843fa1b` | Revert "feat: add Total Transaksi with COUNTA formula" |
+| `9b39134` | feat: add Total Transaksi with COUNTA formula |
+| `88d9abb` | feat: Excel export with SUMIF formulas |
+| `94451c0` | feat: structured Excel export with summary section |
+| `432abc9` | chore: add WhatsApp images to gitignore |
+| `c6d34e0` | fix: critical dashboard issues - revenue loading, double-submit |
+| `928f042` | fix: extract API response correctly |
+| `3e4d1a1` | fix: pagination state management |
+| `6ca4afa` | feat: add batch delete |
+| `9aff22c` | fix: handle backend response format for barbers |
+| `f683323` | docs: add system building report |
+| `feb6669` | fix: add localStorage fallback for barbers |
+| `364effd` | feat: add barbers/karyawan management page |
+| `72274c7` | fix: improve form dialogs, add revenue Excel export |
+| `28be01c` | fix: filter buttons pakai onAction manual |
+| `95065f6` | feat: ganti logo admin dari SVG ke JPEG |
+| `2dbc442` | fix: tambah whitespace-nowrap + shrink-0 icon |
+| `fb15790` | fix: filter buttons outline + primary/10 bg |
+| `fe45a6e` | fix: filter buttons pakai variant primary |
+| `e01ce64` | fix: hapus Section Header dari dropdown filter |
+| `17d8f7f` | feat: ganti native select ke HeroUI Dropdown |
+| `a03d070` | feat: HeroUI Dropdown sesuai dokumentasi |
+| `644aa24` | feat: ganti dropdown ke HeroUI Dropdown compound components |
+| `8a2293a` | feat: tabel DataTable dengan sortir, paginasi, skeleton |
+| `0378416` | fix: perbesar padding tabel |
+| `0b45729` | fix: kembalikan tampilan kartu pelamar |
+| `943f46a` | fix: perbesar jarak antar baris tabel |
+| `a558417` | feat: aktifkan fitur produk, layanan, revenue |
+| `c6cfeda` | fix: ubah daftar pelamar jadi tabel |
+| `9d3f5ac` | fix: rapikan tabel pelamar |
+| `1400969` | fix: perbesar jarak antar kartu |
+| `dd4a0a4` | fix: tambah jarak antar kartu |
+| `afbe149` | feat: input harga layanan format Rupiah |
+| `a089768` | fix: rapikan kartu pelamar |
+| `34eff06` | fix: perbaiki typografi & spasi |
+| `2f12b3f` | feat: produk & layanan CRUD dengan localStorage |
+| `cb13718` | docs: tambah spesifikasi backend |
+| `d7233c9` | fix: clean up testing alert |
+| `7063d74` | feat: add image upload dan rupiah-formatted price input |
+| `7756f5f` | fix: add feature flags |
+| `3999679` | fix: remove global providers |
+| `bc67d1c` | fix: replace placeholder logo dengan PangkasKAKA SVG |
+| `4f41c4f` | fix: add placeholder SVG logo |
+| `4da6574` | fix: handle 404 gracefully |
+| `9e080b6` | feat: add Katalog Produk, Layanan, Revenue |
+| `ab22c6a` | fix: change all shadcn imports |
+| `57cf719` | chore: trigger Vercel rebuild |
+| `cedcb55` | fix: rename Button.tsx/Card.tsx ke lowercase |
+| `afc4aeb` | feat: redesign ShopAdmin UI |
+| `901e748` | feat: align frontend dependencies |
+| `bfad2f8` | fix: pin vite@7 |
+| `e795694` | fix: downgrade vitest ke v4 |
+| `9640a0b` | feat: add Vercel deployment config |
+| `ef1887c` | chore: automate commit and push |
+| `6e9a56c` | Initial implementation |
 
 ---
 
-## 16. Checklist Kesiapan Produksi
+## 17. Checklist Kesiapan Produksi
 
 ### Frontend (Admin Dashboard)
 - [x] Semua 11 halaman berfungsi
@@ -525,6 +754,8 @@ GET /profile    → 200 OK ✅
 - [x] Performance optimized (no unnecessary API calls)
 - [x] Null-safe API responses
 - [x] 401 auto-redirect
+- [x] Logo baru terpasang
+- [x] Profile page bersih (tanpa fitur yang memerlukan SuperAdmin)
 
 ### Backend (Menunggu SuperAdmin)
 - [ ] Shop schema tambah field `phone`
@@ -533,13 +764,14 @@ GET /profile    → 200 OK ✅
 
 ---
 
-## 17. Catatan untuk SuperAdmin
+## 18. Catatan untuk SuperAdmin
 
 ### Yang Sudah Siap
 1. **Admin Dashboard** — Sudah berfungsi penuh di production
 2. **Multi-Admin** — Setiap admin hanya lihat data toko yang di-assign
 3. **Excel Export** — Laporan keuangan dengan format profesional
 4. **Performance** — Navigasi cepat, tidak ada API call yang tidak perlu
+5. **Error Handling** — Robust, tidak crash saat ada error
 
 ### Yang Perlu Backend Update
 1. **Shop Phone** — Tambah field `phone` di ShopRegisterIn schema
@@ -553,12 +785,32 @@ GET /profile    → 200 OK ✅
 4. Test CRUD operations (tambah, edit, hapus produk/layanan/barber)
 5. Test batch delete
 
+### Akses Admin
+- **URL:** https://pangkaskaka-shop-admin.vercel.app
+- **Login:** Gunakan akun admin yang sudah dibuat di SuperAdmin
+- **Role:** Harus `admin` (role lain ditolak)
+
 ---
 
-## 18. Penutup
+## 19. Penutup
 
-Dashboard admin PangkasKAKA sudah **selesai dan siap produksi**. Semua fitur utama sudah terimplementasi:
+Dashboard admin PangkasKAKA sudah **selesai dan siap produksi**. Pengembangan dilakukan dalam 2 hari (10-11 September 2026) dengan 80+ commit yang mencakup:
 
+### Hari Pertama (10 Sep)
+- Inisialisasi proyek dan setup deployment
+- Implementasi semua halaman (login, dashboard, applicants, barbers, products, services, revenue, profile)
+- UI/UX improvements (dropdown, filter, tabel, kartu)
+- Excel export dengan SUMIF formulas
+- Profile page dengan photo upload
+
+### Hari Kedua (11 Sep)
+- Fix Excel export (SUMIF formulas, styling, file naming, Rupiah format)
+- Performance optimization (ApplicantsProvider fix)
+- Error handling improvements (401, null-safety)
+- Profile page cleanup
+- Logo update
+
+### Fitur Lengkap
 - ✅ Autentikasi dan otorisasi (multi-admin)
 - ✅ Manajemen pelamar StreetBarber (review, evaluasi, chat)
 - ✅ CRUD produk, layanan, dan karyawan
@@ -572,4 +824,8 @@ Sistem siap untuk digunakan oleh admin setelah backend di-update oleh SuperAdmin
 
 ---
 
-*Document updated on 11 September 2026*
+*Document generated on 11 September 2026*  
+*Total commits: 80+*  
+*Total pages: 11*  
+*Total routes: 11*  
+*Build status: ✅ Clean*
