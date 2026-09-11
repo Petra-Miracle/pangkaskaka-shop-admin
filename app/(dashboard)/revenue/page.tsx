@@ -128,28 +128,23 @@ export default function RevenuePage() {
     const shopName = shopsById[selectedShopId]?.name || selectedShopId;
     const shopNameFile = shopName.replace(/\s+/g, "_");
 
-    const txHeaderRow = 17;
-    const txStartRow = 18;
+    const txHeaderRow = 12;
+    const txStartRow = 13;
     const txEndRow = txStartRow + transactions.length - 1;
 
     const rows: (string | number | { f: string })[][] = [
       ["LAPORAN KEUANGAN TOKO"],                                           // Row 1
-      [""],                                                                // Row 2
-      ["Toko", shopName],                                                 // Row 3
-      ["Periode", dateLabel],                                             // Row 4
-      ["Filter", filterLabel],                                            // Row 5
-      [""],                                                                // Row 6
-      [""],                                                                // Row 7
-      ["RINGKASAN KEUANGAN"],                                             // Row 8
-      [""],                                                                // Row 9
-      ["Keterangan", "Jumlah"],                                           // Row 10
-      ["Total Pendapatan", { f: `SUMIF(D${txHeaderRow}:D${txEndRow},"Pendapatan",E${txHeaderRow}:E${txEndRow})` }],  // Row 11
-      ["Total Pengeluaran", { f: `SUMIF(D${txHeaderRow}:D${txEndRow},"Pengeluaran",E${txHeaderRow}:E${txEndRow})` }],  // Row 12
-      ["Laba Bersih", { f: `B11-B12` }],                                  // Row 13
-      [""],                                                                // Row 14
-      [""],                                                                // Row 15
-      ["DATA TRANSAKSI"],                                                 // Row 16
-      ["Tanggal", "Deskripsi", "Kategori", "Tipe", "Jumlah", "Dicatat Oleh"],  // Row 17 (header)
+      ["Toko", shopName],                                                 // Row 2
+      ["Periode", dateLabel],                                             // Row 3
+      ["Filter", filterLabel],                                            // Row 4
+      ["RINGKASAN KEUANGAN"],                                             // Row 5
+      ["Keterangan", "Jumlah"],                                           // Row 6
+      ["Total Pendapatan", { f: `SUMIF(D${txHeaderRow}:D${txEndRow},"Pendapatan",E${txHeaderRow}:E${txEndRow})` }],  // Row 7
+      ["Total Pengeluaran", { f: `SUMIF(D${txHeaderRow}:D${txEndRow},"Pengeluaran",E${txHeaderRow}:E${txEndRow})` }],  // Row 8
+      ["Laba Bersih", { f: `B7-B8` }],                                   // Row 9
+      [""],                                                                // Row 10 (spacer between sections)
+      ["DATA TRANSAKSI"],                                                 // Row 11
+      ["Tanggal", "Deskripsi", "Kategori", "Tipe", "Jumlah", "Dicatat Oleh"],  // Row 12 (txHeaderRow)
     ];
 
     for (const tx of transactions) {
@@ -177,9 +172,9 @@ export default function RevenuePage() {
     ws["!cols"] = colWidths;
 
     ws["!merges"] = [
-      { s: { r: 0, c: 0 }, e: { r: 0, c: 5 } },   // Title
-      { s: { r: 7, c: 0 }, e: { r: 7, c: 1 } },   // RINGKASAN KEUANGAN
-      { s: { r: 15, c: 0 }, e: { r: 15, c: 5 } },  // DATA TRANSAKSI
+      { s: { r: 0, c: 0 }, e: { r: 0, c: 5 } },   // Title (Row 1)
+      { s: { r: 4, c: 0 }, e: { r: 4, c: 1 } },   // RINGKASAN KEUANGAN (Row 5)
+      { s: { r: 10, c: 0 }, e: { r: 10, c: 5 } },  // DATA TRANSAKSI (Row 11)
     ];
 
     // Style definitions
@@ -207,8 +202,8 @@ export default function RevenuePage() {
       };
     }
 
-    // Style RINGKASAN KEUANGAN header (Row 8)
-    const ringkasanCell = ws["A8"];
+    // Style RINGKASAN KEUANGAN header (Row 5)
+    const ringkasanCell = ws["A5"];
     if (ringkasanCell) {
       ringkasanCell.s = {
         font: { bold: true, sz: 12, color: { rgb: "1E3A5F" } },
@@ -217,9 +212,9 @@ export default function RevenuePage() {
       };
     }
 
-    // Style Keterangan header (Row 10)
-    const keteranganCell = ws["A10"];
-    const jumlahHeaderCell = ws["B10"];
+    // Style Keterangan header (Row 6)
+    const keteranganCell = ws["A6"];
+    const jumlahHeaderCell = ws["B6"];
     if (keteranganCell) {
       keteranganCell.s = {
         font: { bold: true },
@@ -235,9 +230,9 @@ export default function RevenuePage() {
       };
     }
 
-    // Style Total Pendapatan (Row 11) - Green
-    const pendapatanLabelCell = ws["A11"];
-    const pendapatanValueCell = ws["B11"];
+    // Style Total Pendapatan (Row 7) - Green
+    const pendapatanLabelCell = ws["A7"];
+    const pendapatanValueCell = ws["B7"];
     if (pendapatanLabelCell) {
       pendapatanLabelCell.s = {
         font: { bold: true, color: { rgb: "137333" } },
@@ -254,9 +249,9 @@ export default function RevenuePage() {
       };
     }
 
-    // Style Total Pengeluaran (Row 12) - Red
-    const pengeluaranLabelCell = ws["A12"];
-    const pengeluaranValueCell = ws["B12"];
+    // Style Total Pengeluaran (Row 8) - Red
+    const pengeluaranLabelCell = ws["A8"];
+    const pengeluaranValueCell = ws["B8"];
     if (pengeluaranLabelCell) {
       pengeluaranLabelCell.s = {
         font: { bold: true, color: { rgb: "C5221F" } },
@@ -273,9 +268,9 @@ export default function RevenuePage() {
       };
     }
 
-    // Style Laba Bersih (Row 13) - Blue, larger font
-    const labaLabelCell = ws["A13"];
-    const labaValueCell = ws["B13"];
+    // Style Laba Bersih (Row 9) - Blue, larger font
+    const labaLabelCell = ws["A9"];
+    const labaValueCell = ws["B9"];
     if (labaLabelCell) {
       labaLabelCell.s = {
         font: { bold: true, sz: 12, color: { rgb: "1A73E8" } },
@@ -292,8 +287,8 @@ export default function RevenuePage() {
       };
     }
 
-    // Style DATA TRANSAKSI header (Row 16)
-    const dataHeaderCell = ws["A16"];
+    // Style DATA TRANSAKSI header (Row 11)
+    const dataHeaderCell = ws["A11"];
     if (dataHeaderCell) {
       dataHeaderCell.s = {
         font: { bold: true, sz: 12, color: { rgb: "1E3A5F" } },
@@ -302,8 +297,8 @@ export default function RevenuePage() {
       };
     }
 
-    // Style transaction table header (Row 17)
-    const txHeaders = ["A17", "B17", "C17", "D17", "E17", "F17"];
+    // Style transaction table header (Row 12)
+    const txHeaders = ["A12", "B12", "C12", "D12", "E12", "F12"];
     for (const ref of txHeaders) {
       const cell = ws[ref];
       if (cell) {
