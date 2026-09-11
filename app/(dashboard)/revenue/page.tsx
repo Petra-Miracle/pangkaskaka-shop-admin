@@ -149,7 +149,7 @@ export default function RevenuePage() {
       [""],                                                                // Row 14
       [""],                                                                // Row 15
       ["DATA TRANSAKSI"],                                                 // Row 16
-      ["Tanggal", "Deskripsi", "Kategori", "Tipe", "Jumlah (Rp)", "Dicatat Oleh"],  // Row 17 (header)
+      ["Tanggal", "Deskripsi", "Kategori", "Tipe", "Jumlah", "Dicatat Oleh"],  // Row 17 (header)
     ];
 
     for (const tx of transactions) {
@@ -250,7 +250,7 @@ export default function RevenuePage() {
         font: { bold: true, color: { rgb: "137333" } },
         fill: { fgColor: greenBg },
         border: thinBorder,
-        numFmt: "#,##0",
+        numFmt: "Rp #,##0",
       };
     }
 
@@ -269,7 +269,7 @@ export default function RevenuePage() {
         font: { bold: true, color: { rgb: "C5221F" } },
         fill: { fgColor: redBg },
         border: thinBorder,
-        numFmt: "#,##0",
+        numFmt: "Rp #,##0",
       };
     }
 
@@ -288,7 +288,7 @@ export default function RevenuePage() {
         font: { bold: true, sz: 12, color: { rgb: "1A73E8" } },
         fill: { fgColor: blueBg },
         border: thinBorder,
-        numFmt: "#,##0",
+        numFmt: "Rp #,##0",
       };
     }
 
@@ -349,7 +349,7 @@ export default function RevenuePage() {
       if (jumlahCell) {
         jumlahCell.s = {
           ...jumlahCell.s,
-          numFmt: "#,##0",
+          numFmt: "Rp #,##0",
         };
       }
     }
