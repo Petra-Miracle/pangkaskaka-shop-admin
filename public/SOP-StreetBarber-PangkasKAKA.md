@@ -170,6 +170,7 @@ Memastikan setiap StreetBarber memberikan layanan yang bersih, rapi, sopan, leng
 3. **Umpan Balik** — Terima kritik dan saran dengan terbuka
 4. **Pelatihan** — Ikuti pelatihan yang diadakan oleh PangkasKAKA
 5. **Pelaporan** — Laporkan masalah kepada admin segera
+6. **TANPA PENGEMBALIAN DANA** — Setelah layanan berhasil dilakukan, TIDAK AKAN ada pengembalian dana (refund). Pastikan pelanggan memahami ini sebelum memulai layanan. Jika ada ketidakpuasan, tawarkan perbaikan/retouch, bukan pengembalian dana.
 
 ---
 
