@@ -31,7 +31,6 @@ import {
   FileText,
   Upload,
   ExternalLink,
-  Trash2,
 } from "lucide-react";
 
 export default function ProfilePage() {
@@ -180,29 +179,6 @@ export default function ProfilePage() {
     },
     [shopId, refresh]
   );
-
-  const handleSopDelete = useCallback(async () => {
-    if (!shopId) return;
-    if (!confirm("Yakin ingin menghapus dokumen SOP?")) return;
-
-    setSopUploading(true);
-    setSopError(null);
-    try {
-      await api.put(`/shop-admin/shops/${shopId}/sop`, {
-        shop_id: shopId,
-        document: "",
-      });
-      await refresh();
-    } catch (err) {
-      setSopError(
-        err instanceof ApiError
-          ? err.message
-          : "Gagal menghapus dokumen SOP. Silakan coba lagi."
-      );
-    } finally {
-      setSopUploading(false);
-    }
-  }, [shopId, refresh]);
 
   return (
     <div className="space-y-6">
@@ -469,19 +445,19 @@ export default function ProfilePage() {
                     </a>
                     <button
                       type="button"
-                      onClick={handleSopDelete}
+                      onClick={() => sopFileInputRef.current?.click()}
                       disabled={sopUploading}
-                      className="flex flex-1 items-center justify-center gap-2 rounded-xl border border-destructive/20 bg-destructive/5 py-2.5 text-sm font-medium text-destructive transition-all hover:bg-destructive/10 hover:border-destructive/30 disabled:opacity-50"
+                      className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-primary py-2.5 text-sm font-medium text-primary-foreground transition-all hover:bg-primary/90 disabled:opacity-50"
                     >
                       {sopUploading ? (
                         <>
-                          <div className="size-3.5 animate-spin rounded-full border-2 border-destructive border-t-transparent" />
-                          Menghapus...
+                          <div className="size-3.5 animate-spin rounded-full border-2 border-primary-foreground border-t-transparent" />
+                          Mengunggah...
                         </>
                       ) : (
                         <>
-                          <Trash2 className="size-4" />
-                          Hapus Dokumen
+                          <Upload className="size-4" />
+                          Ganti Dokumen
                         </>
                       )}
                     </button>
