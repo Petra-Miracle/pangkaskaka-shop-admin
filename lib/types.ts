@@ -56,6 +56,8 @@ export interface Shop {
   longitude?: number;
   phone?: string;
   operating_hours?: string;
+  sop_document_url?: string;
+  sop_updated_at?: string;
   services?: unknown[];
   barbers?: unknown[];
   [key: string]: unknown;

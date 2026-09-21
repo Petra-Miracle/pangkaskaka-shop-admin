@@ -28,6 +28,9 @@ import {
   Store,
   ChevronRight,
   ShieldCheck,
+  FileText,
+  Upload,
+  ExternalLink,
 } from "lucide-react";
 
 export default function ProfilePage() {
@@ -36,6 +39,9 @@ export default function ProfilePage() {
 
   const [uploading, setUploading] = useState(false);
   const [changePasswordOpen, setChangePasswordOpen] = useState(false);
+  const [sopUploading, setSopUploading] = useState(false);
+  const [sopError, setSopError] = useState<string | null>(null);
+  const sopFileInputRef = useRef<HTMLInputElement>(null);
 
   const [barberCount, setBarberCount] = useState<Record<string, number>>({});
   const [serviceCount, setServiceCount] = useState<Record<string, number>>({});
@@ -123,6 +129,55 @@ export default function ProfilePage() {
       }
     },
     [refresh]
+  );
+
+  const handleSopUpload = useCallback(
+    async (e: React.ChangeEvent<HTMLInputElement>) => {
+      const file = e.target.files?.[0];
+      if (!file || !shopId) return;
+
+      if (file.type !== "application/pdf") {
+        setSopError("Hanya file PDF yang diterima.");
+        if (sopFileInputRef.current) sopFileInputRef.current.value = "";
+        return;
+      }
+
+      if (file.size > 5 * 1024 * 1024) {
+        setSopError("Ukuran file maksimal 5MB.");
+        if (sopFileInputRef.current) sopFileInputRef.current.value = "";
+        return;
+      }
+
+      setSopUploading(true);
+      setSopError(null);
+      try {
+        const reader = new FileReader();
+        const base64 = await new Promise<string>((resolve, reject) => {
+          reader.onload = () => resolve(reader.result as string);
+          reader.onerror = reject;
+          reader.readAsDataURL(file);
+        });
+
+        const res = await api.put<{ ok: boolean; sop_document_url: string }>(
+          `/shop-admin/shops/${shopId}/sop`,
+          { shop_id: shopId, document: base64 }
+        );
+
+        if (res.ok && res.sop_document_url) {
+          await refresh();
+        }
+      } catch (err) {
+        setSopError(
+          err instanceof ApiError
+            ? err.message
+            : "Gagal mengunggah dokumen SOP. Silakan coba lagi."
+        );
+      } finally {
+        setSopUploading(false);
+        if (sopFileInputRef.current) sopFileInputRef.current.value = "";
+      }
+    },
+    [shopId, refresh]
   );
 
   return (
@@ -339,6 +394,111 @@ export default function ProfilePage() {
                   <ChevronRight className="size-4" />
                 </button>
               </Link>
+            </div>
+          )}
+
+          {/* SOP Section */}
+          {shopId && (
+            <div className="mt-4 rounded-2xl border border-border/50 bg-background/30 p-5">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-warning/10 text-warning">
+                  <FileText className="size-5" />
+                </div>
+                <div>
+                  <p className="font-bold text-foreground">Dokumen SOP</p>
+                  <p className="text-xs text-muted-foreground">
+                    Standar Operasional Prosedur untuk StreetBarber
+                  </p>
+                </div>
+              </div>
+
+              {sopError && (
+                <div className="mb-3 rounded-lg bg-destructive/10 px-3 py-2 text-xs text-destructive">
+                  {sopError}
+                </div>
+              )}
+
+              {shop?.sop_document_url ? (
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                    <div className="size-2 rounded-full bg-success" />
+                    <span>SOP sudah diunggah</span>
+                    {shop.sop_updated_at && (
+                      <span>
+                        — {new Date(shop.sop_updated_at).toLocaleDateString("id-ID", {
+                          day: "numeric",
+                          month: "short",
+                          year: "numeric",
+                        })}
+                      </span>
+                    )}
+                  </div>
+                  <div className="flex gap-2">
+                    <a
+                      href={shop.sop_document_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex flex-1 items-center justify-center gap-2 rounded-xl border border-border/50 bg-background/50 py-2.5 text-sm font-medium text-foreground transition-all hover:border-primary/30 hover:bg-primary/5"
+                    >
+                      <ExternalLink className="size-4" />
+                      Lihat SOP
+                    </a>
+                    <button
+                      type="button"
+                      onClick={() => sopFileInputRef.current?.click()}
+                      disabled={sopUploading}
+                      className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-primary py-2.5 text-sm font-medium text-primary-foreground transition-all hover:bg-primary/90 disabled:opacity-50"
+                    >
+                      {sopUploading ? (
+                        <>
+                          <div className="size-3.5 animate-spin rounded-full border-2 border-primary-foreground border-t-transparent" />
+                          Mengunggah...
+                        </>
+                      ) : (
+                        <>
+                          <Upload className="size-4" />
+                          Ganti Dokumen
+                        </>
+                      )}
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div className="rounded-xl border border-dashed border-border p-4 text-center">
+                  <div className="mx-auto mb-2 flex size-10 items-center justify-center rounded-full bg-muted text-muted-foreground">
+                    <Upload className="size-5" />
+                  </div>
+                  <p className="text-sm text-muted-foreground mb-3">
+                    Belum ada dokumen SOP. Unggah dokumen PDF berisi SOP untuk StreetBarber.
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => sopFileInputRef.current?.click()}
+                    disabled={sopUploading}
+                    className="inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-all hover:bg-primary/90 disabled:opacity-50"
+                  >
+                    {sopUploading ? (
+                      <>
+                        <div className="size-3.5 animate-spin rounded-full border-2 border-primary-foreground border-t-transparent" />
+                        Mengunggah...
+                      </>
+                    ) : (
+                      <>
+                        <Upload className="size-4" />
+                        Unggah Dokumen SOP
+                      </>
+                    )}
+                  </button>
+                </div>
+              )}
+
+              <input
+                ref={sopFileInputRef}
+                type="file"
+                accept=".pdf,application/pdf"
+                className="hidden"
+                onChange={handleSopUpload}
+              />
             </div>
           )}
         </div>
