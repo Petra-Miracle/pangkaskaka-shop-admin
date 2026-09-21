@@ -6,9 +6,12 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useApplicants, ApplicantsProvider } from "@/contexts/ApplicantsContext";
 import { api, ApiError } from "@/lib/api";
 import { FEATURES } from "@/lib/features";
-import { ApplicantStatus, Product, Service } from "@/lib/types";
+import { ApplicantStatus, Product, Service, Transaction } from "@/lib/types";
 import { getProducts, getServices } from "@/lib/storage";
 import { PageHeader } from "@/components/nav/page-header";
+import { ApplicantStatusChart } from "@/components/charts/ApplicantStatusChart";
+import { RevenueBarChart } from "@/components/charts/RevenueBarChart";
+import { ApplicantTrendChart } from "@/components/charts/ApplicantTrendChart";
 import { Package, Scissors, TrendingUp } from "lucide-react";
 
 const SUMMARY_STATUSES: { status: ApplicantStatus[]; label: string; color: string }[] = [
@@ -27,8 +30,18 @@ function DashboardContent() {
   const { applicants, loading, error } = useApplicants();
   const [productCount, setProductCount] = useState(0);
   const [serviceCount, setServiceCount] = useState(0);
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [txLoading, setTxLoading] = useState(true);
 
   const managedShopIds = user?.managed_shop_ids || [];
+
+  const statusCounts = applicants.reduce(
+    (acc, a) => {
+      acc[a.status] = (acc[a.status] || 0) + 1;
+      return acc;
+    },
+    {} as Record<ApplicantStatus, number>
+  );
 
   const fetchCounts = useCallback(async () => {
     if (!FEATURES.products && !FEATURES.services) {
@@ -63,9 +76,36 @@ function DashboardContent() {
     }
   }, []);
 
+  const fetchTransactions = useCallback(async () => {
+    if (!FEATURES.revenue || managedShopIds.length === 0) {
+      setTxLoading(false);
+      return;
+    }
+    try {
+      const results = await Promise.allSettled(
+        managedShopIds.map((shopId) =>
+          api.get<{ transactions: Transaction[] }>(
+            `/shop-admin/revenue?shop_id=${shopId}`
+          )
+        )
+      );
+      const allTx: Transaction[] = [];
+      for (const r of results) {
+        if (r.status === "fulfilled")
+          allTx.push(...(r.value.transactions || []));
+      }
+      setTransactions(allTx);
+    } catch {
+      // silently ignore
+    } finally {
+      setTxLoading(false);
+    }
+  }, [managedShopIds]);
+
   useEffect(() => {
     fetchCounts();
-  }, [fetchCounts]);
+    fetchTransactions();
+  }, [fetchCounts, fetchTransactions]);
 
   return (
     <div className="space-y-6">
@@ -97,6 +137,12 @@ function DashboardContent() {
             </div>
           );
         })}
+      </div>
+
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+        <ApplicantStatusChart data={statusCounts} loading={loading} />
+        <RevenueBarChart transactions={transactions} loading={txLoading} />
+        <ApplicantTrendChart applicants={applicants} loading={loading} />
       </div>
 
       <div className="stagger-children grid grid-cols-1 gap-3 sm:grid-cols-3">
