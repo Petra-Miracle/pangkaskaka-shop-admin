@@ -285,7 +285,7 @@ export default function ProfilePage() {
                       hour: "2-digit",
                       minute: "2-digit",
                     })
-                  : "-"}
+                  : "Sesi aktif"}
               </span>
             </div>
           </div>
