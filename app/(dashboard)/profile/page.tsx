@@ -471,24 +471,34 @@ export default function ProfilePage() {
                   <p className="text-sm text-muted-foreground mb-3">
                     Belum ada dokumen SOP. Unggah dokumen PDF berisi SOP untuk StreetBarber.
                   </p>
-                  <button
-                    type="button"
-                    onClick={() => sopFileInputRef.current?.click()}
-                    disabled={sopUploading}
-                    className="inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-all hover:bg-primary/90 disabled:opacity-50"
-                  >
-                    {sopUploading ? (
-                      <>
-                        <div className="size-3.5 animate-spin rounded-full border-2 border-primary-foreground border-t-transparent" />
-                        Mengunggah...
-                      </>
-                    ) : (
-                      <>
-                        <Upload className="size-4" />
-                        Unggah Dokumen SOP
-                      </>
-                    )}
-                  </button>
+                  <div className="flex flex-col gap-2">
+                    <button
+                      type="button"
+                      onClick={() => sopFileInputRef.current?.click()}
+                      disabled={sopUploading}
+                      className="inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-all hover:bg-primary/90 disabled:opacity-50"
+                    >
+                      {sopUploading ? (
+                        <>
+                          <div className="size-3.5 animate-spin rounded-full border-2 border-primary-foreground border-t-transparent" />
+                          Mengunggah...
+                        </>
+                      ) : (
+                        <>
+                          <Upload className="size-4" />
+                          Unggah Dokumen SOP
+                        </>
+                      )}
+                    </button>
+                    <a
+                      href="/SOP-StreetBarber-PangkasKAKA.md"
+                      download
+                      className="inline-flex items-center justify-center gap-2 rounded-xl border border-border/50 bg-background/50 px-4 py-2 text-xs font-medium text-muted-foreground transition-all hover:border-primary/30 hover:bg-primary/5"
+                    >
+                      <FileText className="size-3.5" />
+                      Unduh Template SOP (Markdown)
+                    </a>
+                  </div>
                 </div>
               )}
 
